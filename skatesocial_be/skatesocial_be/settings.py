@@ -55,7 +55,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 INSTALLED_APPS += [
-    #'rest_framework',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth' # https://github.com/iMerica/dj-rest-auth
     ]
 
 INSTALLED_APPS += [
