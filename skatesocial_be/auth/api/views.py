@@ -8,12 +8,7 @@ from rest_framework.decorators import authentication_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .serializers import (
-    DualLogInSerializer,
-    LoginResponseSerializer,
-    UserBasicSerializer,
-    EmailTokenObtainPairSerializer,
-)
+from .serializers import DualLogInSerializer, UserBasicSerializer
 from ..authentication import DecadeRefreshToken
 
 User = get_user_model()
@@ -34,11 +29,7 @@ class LoginView(RestAuthLoginView):
         token = DecadeRefreshToken.for_user(self.user)
         self.token = token
 
-    def get_response_serializer(self):
-        return LoginResponseSerializer
-
     def get_response(self):
-        serializer_class = self.get_response_serializer()
 
         if self.token:
             user_serializer = UserBasicSerializer(instance=self.user)
@@ -47,21 +38,8 @@ class LoginView(RestAuthLoginView):
                 "refresh": str(self.token),
                 "access": str(self.token.access_token),
             }
-            print("token_data")
-            print(token_data)
-            token_serializer = EmailTokenObtainPairSerializer(data=token_data)
-
-            data = {
-                "user": user_serializer.data,
-                "token": token_serializer.initial_data,
-            }
-            print(data)
-            serializer = serializer_class(
-                data=data,
-                context=self.get_serializer_context(),
-            )
-            print("end")
+            data = {"user": user_serializer.data, "tokens": token_data}
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        response = Response(serializer.initial_data, status=status.HTTP_200_OK)
+        response = Response(data, status=status.HTTP_200_OK)
         return response

@@ -60,13 +60,3 @@ class UserBasicSerializer(serializers.ModelSerializer):
             "first_name",
             "email",
         )
-
-
-class EmailTokenObtainPairSerializer(serializers.Serializer):
-    refresh = serializers.CharField(read_only=True)
-    access = serializers.CharField(read_only=True)
-
-
-class LoginResponseSerializer(serializers.Serializer):
-    user = UserBasicSerializer()
-    tokens = EmailTokenObtainPairSerializer()
