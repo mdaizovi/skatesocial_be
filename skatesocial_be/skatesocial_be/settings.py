@@ -1,4 +1,6 @@
 import os
+import datetime
+from datetime import timedelta
 from pathlib import Path
 from unipath import Path as unipathPath
 import environ
@@ -43,11 +45,18 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
 ]
 INSTALLED_APPS += [
     "rest_framework",
     "rest_framework.authtoken",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "dj_rest_auth.registration",
     "dj_rest_auth",  # https://github.com/iMerica/dj-rest-auth
+    # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/index.html
+    "rest_framework_simplejwt",
 ]
 
 INSTALLED_APPS += [
@@ -117,14 +126,35 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ]
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
 }
+REST_AUTH_SERIALIZERS = {
+    # "USER_LOGIN_SERIALIZER": "auth.api.serializers." "LoginSuccessSerializer",
+    "USER_DETAILS_SERIALIZER": "auth.api.serializers."
+    "UserBasicSerializer",
+}
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -154,3 +184,13 @@ TEMPLATE_DIRS = (BASE_DIR.child("templates"),)
 
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=365 * 10),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=365 * 10),
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
