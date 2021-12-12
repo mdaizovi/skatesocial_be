@@ -2,13 +2,20 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
+from allauth.account import app_settings as allauth_settings
 from dj_rest_auth.views import LoginView as RestAuthLoginView
+from dj_rest_auth.registration.views import RegisterView as RestAuthRegisterView
 from rest_framework import status
 from rest_framework.decorators import authentication_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .serializers import DualLogInSerializer, UserBasicSerializer
+from .serializers import (
+    DualLogInSerializer,
+    UserBasicSerializer,
+    TokenSerializer,
+    UserTokenSerializer,
+)
 from ..authentication import DecadeRefreshToken
 
 User = get_user_model()
@@ -33,13 +40,31 @@ class LoginView(RestAuthLoginView):
 
         if self.token:
             user_serializer = UserBasicSerializer(instance=self.user)
-
-            token_data = {
-                "refresh": str(self.token),
-                "access": str(self.token.access_token),
-            }
-            data = {"user": user_serializer.data, "tokens": token_data}
+            token_serializer = TokenSerializer(instance=self.user)
+            data = {"user": user_serializer.data, "tokens": token_serializer.data}
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        response = Response(data, status=status.HTTP_200_OK)
+        serializer = UserTokenSerializer(
+            data=data, context=self.get_serializer_context()
+        )
+        serializer.is_valid()
+        response = Response(serializer.data, status=status.HTTP_200_OK)
         return response
+
+
+class RegisterView(RestAuthRegisterView):
+    def get_response_data(self, user):
+        if (
+            allauth_settings.EMAIL_VERIFICATION
+            == allauth_settings.EmailVerificationMethod.MANDATORY
+        ):
+            return {"detail": _("Verification e-mail sent.")}
+
+        user_serializer = UserBasicSerializer(instance=user)
+        token_serializer = TokenSerializer(instance=user)
+        data = {"user": user_serializer.data, "tokens": token_serializer.data}
+        serializer = UserTokenSerializer(
+            data=data, context=self.get_serializer_context()
+        )
+        serializer.is_valid()
+        return serializer.data

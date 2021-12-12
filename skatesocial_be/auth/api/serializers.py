@@ -10,6 +10,8 @@ from rest_framework_simplejwt.serializers import (
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from ..authentication import DecadeRefreshToken
+
 User = get_user_model()
 
 
@@ -60,3 +62,28 @@ class UserBasicSerializer(serializers.ModelSerializer):
             "first_name",
             "email",
         )
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    access = serializers.SerializerMethodField()
+    refresh = serializers.SerializerMethodField()
+
+    def get_access(self, obj):
+        self.token = DecadeRefreshToken.for_user(obj)
+        return str(self.token.access_token)
+
+    def get_refresh(self, obj):
+        self.token = DecadeRefreshToken.for_user(obj)
+        return str(self.token)
+
+    class Meta:
+        model = User
+        fields = (
+            "access",
+            "refresh",
+        )
+
+
+class UserTokenSerializer(serializers.Serializer):
+    user = UserBasicSerializer()
+    tokens = TokenSerializer()

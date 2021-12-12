@@ -27,10 +27,14 @@ SITE_ID = 1
 
 if ENV_TYPE in ["local", "dev"]:
     SITE_ADDRESS = "http://localhost:8000"
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 elif ENV_TYPE == "prod":
     SITE_ID = 1
-    SITE_ADDRESS = "www.oldiesinanotherroom.com"  # change me, obviously
     SECURE_SSL_REDIRECT = True
+    SITE_ADDRESS = "www.oldiesinanotherroom.com"  # change me, obviously
+    EMAIL_BACKEND = (
+        "django.core.mail.backends.console.EmailBackend"  # change me, obviously
+    )
 SITE_URL = SITE_ADDRESS
 # SERVER_HOSTNAME = env('SERVER_HOSTNAME')
 ALLOWED_HOSTS = ["127.0.0.1:8000", "127.0.0.1", "localhost", SITE_ADDRESS]
