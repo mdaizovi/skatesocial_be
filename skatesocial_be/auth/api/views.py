@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 
 from allauth.account import app_settings as allauth_settings
 from dj_rest_auth.views import LoginView as RestAuthLoginView
@@ -52,6 +54,8 @@ class LoginView(RestAuthLoginView):
         return response
 
 
+# to get rid of csrf, not needed for login or register.
+@authentication_classes([])
 class RegisterView(RestAuthRegisterView):
     def get_response_data(self, user):
         if (
