@@ -7,10 +7,15 @@ User = get_user_model()
 
 class FriendRequest(models.Model):
 
-    initiated_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    initiated_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="initiated_friend_requests"
+    )
     initiated_at = models.DateTimeField(auto_now_add=True)
     target = models.ForeignKey(
-        User, on_delete=models.CASCADE, help_text="user initiated wants to connect with"
+        User,
+        on_delete=models.CASCADE,
+        help_text="user initiated wants to connect with",
+        related_name="pending_friend_requests",
     )
 
     def __str__(self):
@@ -36,8 +41,10 @@ class Crew(models.Model):
     """Basically a Facebook Group, for post privacy"""
 
     name = models.CharField(max_length=100)
-    owned_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    members = models.ManyToManyField(User)
+    owned_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="crews_owned"
+    )
+    members = models.ManyToManyField(User, related_name="crews_included")
 
     def __str__(self):
         return "<{}>: {} by {}".format(

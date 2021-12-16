@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.gis",
 ]
 INSTALLED_APPS += [
     "rest_framework",
@@ -61,12 +62,13 @@ INSTALLED_APPS += [
     "dj_rest_auth",  # https://github.com/iMerica/dj-rest-auth
     # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/index.html
     "rest_framework_simplejwt",
+    "django_countries",
 ]
 
 INSTALLED_APPS += [
-    # "crew_network",
+    "crew_network",
+    "skate_spots",
     # "skate_dates",
-    # "skate_spots",
 ]
 # TODO: https://github.com/venits/react-native-map-clustering
 # maybe https://openbase.com/js/react-native-open-maps
@@ -111,7 +113,7 @@ WSGI_APPLICATION = "skatesocial_be.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": "django.contrib.gis.db.backends.mysql",
         "NAME": env("MYSQL_NAME"),
         "USER": env("MYSQL_USER"),
         "PASSWORD": env("MYSQL_PASSWORD"),

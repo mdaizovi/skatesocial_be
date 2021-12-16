@@ -1,14 +1,10 @@
-
 # Skate Social (name TBD) backend
-blah blah [example of a link](https://www.djangoproject.com/)
-Things you will forget to do when you deploy:
-- a
-- b 
 
+blah blah blah
 
+## GeoDjango specific installation issues
 
-## Running Your Local Development Environment While You Work
-  - In another terminal, activate your virtual environment:
-    
-    `source venv/bin/activate`
-    
+I expect [GeoDjango](https://docs.djangoproject.com/en/4.0/ref/contrib/gis/tutorial/) to be a PITA when deploying. Here are notes from getting it to work locally.
+
+- needed GDAL
+  - `brew install gdal`
