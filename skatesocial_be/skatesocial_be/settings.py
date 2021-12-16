@@ -64,8 +64,13 @@ INSTALLED_APPS += [
 ]
 
 INSTALLED_APPS += [
-    # "music_library"
+    # "crew_network",
+    # "skate_dates",
+    # "skate_spots",
 ]
+# TODO: https://github.com/venits/react-native-map-clustering
+# maybe https://openbase.com/js/react-native-open-maps
+# maybe https://openbase.com/js/react-native-google-place-picker
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -146,7 +151,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         # "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        # "rest_framework.authentication.SessionAuthentication", Removed so don't need csrf tokens, which are unnecessary if don't use browser
         "rest_framework.authentication.BasicAuthentication",
     ],
 }
