@@ -68,7 +68,7 @@ INSTALLED_APPS += [
 INSTALLED_APPS += [
     "crew_network",
     "skate_spots",
-    # "skate_dates",
+    "news_feed",
 ]
 # TODO: https://github.com/venits/react-native-map-clustering
 # maybe https://openbase.com/js/react-native-open-maps
