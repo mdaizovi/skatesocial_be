@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from skate_spots.models import Spot
+from auth.api.serializers import UserBasicSerializer
 
 # from .serializers import (
 #     DualLogInSerializer,
@@ -29,19 +30,25 @@ class SearchView(GenericAPIView):
         initial_pagination = 25
         default_page = 1
 
-        # user = request.user
         q = request.GET.get("search")
         page = request.GET.get("page", default_page)
 
-        for k, v in {
-            "users": User.objects.filter(
-                Q(name__contains__iexact=q) | Q(email__iexact=q)
-            ),
-            "places": Spot.objects.filter(
-                Q(name__contains__iexact=q) | Q(city__iexact=q)
-            ),
-        }.items():
-            paginator = Paginator(v, initial_pagination)
+        query_list = [
+            {
+                "key": "users",
+                "query": User.objects.filter(Q(name__icontains=q) | Q(email__iexact=q)),
+                "serializer_class": UserBasicSerializer,
+            },
+            # {"places":"users", "query": Spot.objects.filter(Q(name__contains__iexact=q) | Q(city__iexact=q)),
+            # "serializer_class":""}
+        ]
+
+        for querytype_dict in query_list:
+            key = querytype_dict["key"]
+            query = querytype_dict["query"]
+            serializer_class = querytype_dict["serializer_class"]
+
+            paginator = Paginator(query, initial_pagination)
             try:
                 results = paginator.page(page)
             except PageNotAnInteger:
@@ -49,7 +56,6 @@ class SearchView(GenericAPIView):
             except EmptyPage:
                 results = paginator.page(paginator.num_pages)
 
-            # do something with results and appropriate serializer.
-            data[k] = results
+            data[key] = serializer_class(results.object_list, many=True).data
 
         return Response(data=data)
