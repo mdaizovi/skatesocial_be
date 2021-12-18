@@ -59,7 +59,7 @@ class UserBasicSerializer(serializers.ModelSerializer):
         fields = (
             "pk",
             "username",
-            "first_name",
+            "name",
             "email",
         )
 

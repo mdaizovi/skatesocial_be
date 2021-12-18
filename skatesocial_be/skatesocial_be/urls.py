@@ -12,4 +12,5 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     # not redundant, notice difference between api-auth and api/auth
     path("api/auth/", include("auth.api.urls")),
+    path("api/search/", include("search.api.urls")),
 ]

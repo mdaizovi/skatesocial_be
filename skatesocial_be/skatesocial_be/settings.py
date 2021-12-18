@@ -69,6 +69,8 @@ INSTALLED_APPS += [
     "crew_network",
     "skate_spots",
     "news_feed",
+    "accounts",
+    # "search", # only need to add if I make models
 ]
 # TODO: https://github.com/venits/react-native-map-clustering
 # maybe https://openbase.com/js/react-native-open-maps
@@ -170,6 +172,7 @@ REST_AUTH_SERIALIZERS = {
     "USER_DETAILS_SERIALIZER": "auth.api.serializers."
     "UserBasicSerializer",
 }
+AUTH_USER_MODEL = "accounts.User"
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_REQUIRED = True
