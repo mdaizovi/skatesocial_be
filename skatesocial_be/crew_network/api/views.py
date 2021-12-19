@@ -75,7 +75,7 @@ class FriendRequestRespondView(GenericAPIView):
                     friendship = Friendship.objects.create()
                     friendship.users.set([initiated_by, target])
                     obj.delete()
-                return Response(status=status.HTTP_200_OK)
+                return Response(status=status.HTTP_201_CREATED)
         elif user_response == 0:
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -88,7 +88,7 @@ class FriendRequestCancelView(DestroyAPIView):
     # allowed_methods = ("DEL",)
 
     def get_queryset(self):
-        return FriendRequest.objects.filter(initiated_by_pk=self.request.user.pk)
+        return FriendRequest.objects.filter(initiated_by__pk=self.request.user.pk)
 
 
 class UnfriendView(DestroyAPIView):
