@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from skate_spots.models import Spot
 from auth.api.serializers import UserBasicSerializer
+from .serializers import UserSearchResultsSerializer
 
 # from .serializers import (
 #     DualLogInSerializer,
@@ -41,8 +42,10 @@ class SearchView(GenericAPIView):
         query_list = [
             {
                 "key": "users",
-                "query": User.objects.filter(Q(name__icontains=q) | Q(email__iexact=q)),
-                "serializer_class": UserBasicSerializer,
+                "query": User.objects.filter(
+                    Q(name__icontains=q) | Q(email__iexact=q)
+                ).exclude(pk=request.user.pk),
+                "serializer_class": UserSearchResultsSerializer,
             },
             # {"places":"users", "query": Spot.objects.filter(Q(name__contains__iexact=q) | Q(city__iexact=q)),
             # "serializer_class":""}
@@ -61,6 +64,8 @@ class SearchView(GenericAPIView):
             except EmptyPage:
                 results = paginator.page(paginator.num_pages)
 
-            data[key] = serializer_class(results.object_list, many=True).data
+            data[key] = serializer_class(
+                results.object_list, context={"request": request}, many=True
+            ).data
 
         return Response(data=data)

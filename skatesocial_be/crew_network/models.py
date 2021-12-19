@@ -29,8 +29,9 @@ class Friendship(models.Model):
     users = models.ManyToManyField(User)
 
     def clean(self):
-        if self.users.count() != 2:
-            raise ValidationError("Must have exactly 2 people in this friendship")
+        if self.pk:  # don't run for first save
+            if self.users.count() != 2:
+                raise ValidationError("Must have exactly 2 people in this friendship")
 
     def __str__(self):
         user_str = ", ".join([str(x) for x in self.users.all()])
