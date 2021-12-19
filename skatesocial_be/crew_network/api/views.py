@@ -21,14 +21,41 @@ from .serializers import FriendRequestCreateSerializer, FriendRequestRespondSeri
 User = get_user_model()
 
 
-class FriendRequestCreateView(CreateAPIView):
-    serializer_class = FriendRequestCreateSerializer
+# class FriendRequestCreateView(CreateAPIView):
+#     serializer_class = FriendRequestCreateSerializer
+#     permission_classes = (IsAuthenticated,)
+
+#     def perform_create(self, serializer):
+#         user = self.request.user
+#         target = User.objects.get(pk=self.request.data["target"])
+
+#         # First check to make sure they aren't already friends
+#         if not Friendship.objects.filter(users=user).filter(users=target).exists():
+#             # Next check that the friend request doesn't already exist in other direction
+#             if not FriendRequest.objects.filter(
+#                 initiated_by=target, target=user
+#             ).exists():
+#                 friend_request, created = FriendRequest.objects.get_or_create(
+#                     initiated_by=user, target=target
+#                 )
+#         # None of those requests should happen, client shouldn't offer possibilty
+#         # ... just being sure
+
+
+class FriendRequestCreateView(GenericAPIView):
+    # serializer_class = None
     permission_classes = (IsAuthenticated,)
+    allowed_methods = ("POST",)
 
-    def perform_create(self, serializer):
-        user = self.request.user
-        target = User.objects.get(pk=self.request.data["target"])
+    def get_queryset(self):
+        return User.objects.exclude(pk=self.request.user.pk)
 
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        target = self.get_object()
+
+        # None of those requests should happen, client shouldn't offer possibilty
+        # ... just being sure
         # First check to make sure they aren't already friends
         if not Friendship.objects.filter(users=user).filter(users=target).exists():
             # Next check that the friend request doesn't already exist in other direction
@@ -38,8 +65,9 @@ class FriendRequestCreateView(CreateAPIView):
                 friend_request, created = FriendRequest.objects.get_or_create(
                     initiated_by=user, target=target
                 )
-        # None of those requests should happen, client shouldn't offer possibilty
-        # ... just being sure
+                if created:
+                    return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FriendRequestRespondView(GenericAPIView):

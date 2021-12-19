@@ -10,7 +10,7 @@ User = get_user_model()
 class FriendRequestCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ("id", "target")
+        fields = ("id",)
 
 
 class FriendRequestRespondSerializer(serializers.Serializer):
