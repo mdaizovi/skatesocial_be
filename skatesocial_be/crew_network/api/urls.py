@@ -7,20 +7,20 @@ from .views import (
 )
 
 urlpatterns = [
-    path("add-friend/<int:pk>/", FriendRequestCreateView.as_view(), name="add-friend"),
+    path("friends/add/<int:pk>/", FriendRequestCreateView.as_view(), name="add-friend"),
     path(
-        "friend-request-respond/<int:pk>/",
+        "friends/remove/<int:pk>/",
+        UnfriendView.as_view(),
+        name="remove-friend",
+    ),
+    path(
+        "friend-request/respond/<int:pk>/",
         FriendRequestRespondView.as_view(),
         name="friend-request-respond",
     ),
     path(
-        "friend-request-cancel/<int:pk>/",
+        "friend-request/cancel/<int:pk>/",
         FriendRequestCancelView.as_view(),
         name="friend-request-cancel",
-    ),
-    path(
-        "remove-friend/<int:pk>/",
-        UnfriendView.as_view(),
-        name="remove-friend",
     ),
 ]
