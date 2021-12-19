@@ -26,6 +26,11 @@ class SearchView(GenericAPIView):
     allowed_methods = ("GET",)
 
     def get(self, request, format=None):
+        """
+        TODO IDEA:
+        can only find people near you, to make point that it's for local connections.
+        Make sure to tell people when asking to use location services.
+        """
         data = {}
         initial_pagination = 25
         default_page = 1

@@ -11,6 +11,7 @@ from rest_framework_simplejwt.serializers import (
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from ..authentication import DecadeRefreshToken
+from accounts.api.serializers import UserBasicSerializer
 
 User = get_user_model()
 
@@ -51,17 +52,6 @@ class DualLogInSerializer(LoginSerializer):
 
         attrs["user"] = user
         return attrs
-
-
-class UserBasicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "pk",
-            "username",
-            "name",
-            "email",
-        )
 
 
 class TokenSerializer(serializers.ModelSerializer):

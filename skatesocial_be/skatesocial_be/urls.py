@@ -13,4 +13,5 @@ urlpatterns = [
     # not redundant, notice difference between api-auth and api/auth
     path("api/auth/", include("auth.api.urls")),
     path("api/search/", include("search.api.urls")),
+    path("api/network/", include("crew_network.api.urls")),
 ]

@@ -14,13 +14,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .serializers import (
     DualLogInSerializer,
-    UserBasicSerializer,
     TokenSerializer,
     UserTokenSerializer,
 )
 from ..authentication import DecadeRefreshToken
 
-User = get_user_model()
+from accounts.api.serializers import UserBasicSerializer
 
 # @authentication_classes([]) is important because otherwise the client might send a bad token
 # and there will be an 'error decoding signature' that can cause the entire login to fail

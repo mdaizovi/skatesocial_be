@@ -7,6 +7,27 @@ from .model_choices import SpotTypeChoices
 
 User = get_user_model()
 
+"""
+Maps links to look at later
+BE
+https://hackernoon.com/how-to-build-location-based-app-with-geodjango-bk1i356x
+https://pganalyze.com/blog/geodjango-postgis
+
+FE
+https://github.com/react-native-maps/react-native-maps
+https://www.npmjs.com/package/react-native-maps
+https://docs.expo.dev/versions/latest/sdk/map-view/
+https://blog.logrocket.com/react-native-maps-introduction/
+https://openbase.com/categories/js/best-react-native-map-libraries
+https://www.youtube.com/watch?v=mhc8k_PoUJk&ab_channel=ProgrammingwithMash
+https://dzone.com/articles/how-to-integrate-google-maps-in-react-native
+https://blog.waldo.io/react-native-maps-tutorial-examples/
+https://www.youtube.com/watch?v=yEuRPiqppQc&ab_channel=UAStudios
+https://stackoverflow.com/questions/51476976/react-native-maps-properties-showspointsofinterest-showsindoors-and-shows
+
+
+"""
+
 
 class City(models.Model):
     name = models.CharField(max_length=250)
