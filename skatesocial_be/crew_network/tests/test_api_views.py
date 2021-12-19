@@ -41,7 +41,7 @@ class FriendRequestTestCase(APITestCase):
         response = self.client.post(
             "/api/network/add-friend/{}/".format(self.target.pk)
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(self.friendship_exists_query.count(), 0)
 
         self.assertEqual(self.friend_request_query_by_me.count(), 1)
@@ -51,7 +51,7 @@ class FriendRequestTestCase(APITestCase):
         response = self.client.post(
             "/api/network/add-friend/{}/".format(self.target.pk)
         )
-        assert response.status_code == 204
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(self.friendship_exists_query.count(), 0)
         self.assertEqual(self.friend_request_query_by_me.count(), 1)
 
@@ -62,7 +62,7 @@ class FriendRequestTestCase(APITestCase):
         response = self.client.post(
             "/api/network/add-friend/{}/".format(self.target.pk)
         )
-        assert response.status_code == 204
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(self.friendship_exists_query.count(), 1)
         self.assertEqual(self.friend_request_query_by_me.count(), 0)
         self.assertEqual(self.friend_request_query_by_target.count(), 0)
@@ -78,7 +78,7 @@ class FriendRequestTestCase(APITestCase):
             "/api/network/friend-request-respond/{}/".format(friend_request.pk),
             {"user_response": 3},
         )
-        assert response.status_code == 400
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(self.friendship_exists_query.count(), 0)
         self.assertEqual(self.friend_request_query_by_me.count(), 0)
         self.assertEqual(self.friend_request_query_by_target.count(), 1)
@@ -88,7 +88,7 @@ class FriendRequestTestCase(APITestCase):
             "/api/network/friend-request-respond/{}/".format(friend_request.pk),
             {"user_response": 0},
         )
-        assert response.status_code == 204
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(self.friendship_exists_query.count(), 0)
         self.assertEqual(self.friend_request_query_by_me.count(), 0)
         self.assertEqual(self.friend_request_query_by_target.count(), 0)
@@ -102,7 +102,7 @@ class FriendRequestTestCase(APITestCase):
             "/api/network/friend-request-respond/{}/".format(friend_request.pk),
             {"user_response": 1},
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(self.friendship_exists_query.count(), 1)
         self.assertEqual(self.friend_request_query_by_me.count(), 0)
         self.assertEqual(self.friend_request_query_by_target.count(), 0)
@@ -115,7 +115,7 @@ class FriendRequestTestCase(APITestCase):
         response = self.client.delete(
             "/api/network/friend-request-cancel/{}/".format(friend_request.pk)
         )
-        assert response.status_code == 204
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(self.friend_request_query_by_me.count(), 0)
 
     def test_unfriend_view(self):
@@ -125,7 +125,7 @@ class FriendRequestTestCase(APITestCase):
         response = self.client.delete(
             "/api/network/remove-friend/{}/".format(friendship.pk)
         )
-        assert response.status_code == 204
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(self.friendship_exists_query.count(), 0)
         # assert friend didn't get deleted!
         self.assertEqual(User.objects.filter(pk=self.target.pk).count(), 1)
