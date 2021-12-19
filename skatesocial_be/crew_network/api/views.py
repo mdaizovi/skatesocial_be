@@ -12,6 +12,7 @@ from rest_framework.generics import (
     get_object_or_404,
     CreateAPIView,
     RetrieveUpdateAPIView,
+    DestroyAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 
@@ -21,29 +22,7 @@ from .serializers import FriendRequestCreateSerializer, FriendRequestRespondSeri
 User = get_user_model()
 
 
-# class FriendRequestCreateView(CreateAPIView):
-#     serializer_class = FriendRequestCreateSerializer
-#     permission_classes = (IsAuthenticated,)
-
-#     def perform_create(self, serializer):
-#         user = self.request.user
-#         target = User.objects.get(pk=self.request.data["target"])
-
-#         # First check to make sure they aren't already friends
-#         if not Friendship.objects.filter(users=user).filter(users=target).exists():
-#             # Next check that the friend request doesn't already exist in other direction
-#             if not FriendRequest.objects.filter(
-#                 initiated_by=target, target=user
-#             ).exists():
-#                 friend_request, created = FriendRequest.objects.get_or_create(
-#                     initiated_by=user, target=target
-#                 )
-#         # None of those requests should happen, client shouldn't offer possibilty
-#         # ... just being sure
-
-
 class FriendRequestCreateView(GenericAPIView):
-    # serializer_class = None
     permission_classes = (IsAuthenticated,)
     allowed_methods = ("POST",)
 
@@ -101,3 +80,21 @@ class FriendRequestRespondView(GenericAPIView):
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class FriendRequestCancelView(DestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = None
+    # allowed_methods = ("DEL",)
+
+    def get_queryset(self):
+        return FriendRequest.objects.filter(initiated_by_pk=self.request.user.pk)
+
+
+class UnfriendView(DestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = None
+    # allowed_methods = ("DEL",)
+
+    def get_queryset(self):
+        return Friendship.objects.filter(users=self.request.user)
