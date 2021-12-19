@@ -33,7 +33,7 @@ class Friendship(models.Model):
             raise ValidationError("Must have exactly 2 people in this friendship")
 
     def __str__(self):
-        user_str = ", ".join([x for x in self.users.all()])
+        user_str = ", ".join([str(x) for x in self.users.all()])
         return "<{}>: {}".format(self.__class__.__name__, user_str)
 
 

@@ -7,7 +7,11 @@ from ..models import FriendRequest, Friendship
 User = get_user_model()
 
 
-class FriendRequestSerializer(serializers.ModelSerializer):
+class FriendRequestCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = ("id", "target")
+
+
+class FriendRequestRespondSerializer(serializers.Serializer):
+    user_response = serializers.IntegerField(required=True)

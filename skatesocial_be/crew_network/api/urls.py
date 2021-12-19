@@ -4,7 +4,7 @@ from .views import FriendRequestCreateView, FriendRequestRespondView
 urlpatterns = [
     path("add-friend/", FriendRequestCreateView.as_view(), name="add-friend"),
     path(
-        "friend-request-respond/",
+        "friend-request-respond/<int:pk>",
         FriendRequestRespondView.as_view(),
         name="friend-request-respond",
     ),
