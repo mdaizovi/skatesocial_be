@@ -36,8 +36,8 @@ class UserSearchResultsSerializer(UserBasicSerializer):
                 except FriendRequest.DoesNotExist:
                     pass
         # If no relationship exists, offer to make friends
-        return {"action": "F"}
+        return {"action": "F", "id": obj.pk}
 
     class Meta:
         model = User
-        fields = ("pk", "username", "name", "email", "connection_options")
+        fields = ("id", "username", "name", "email", "connection_options")

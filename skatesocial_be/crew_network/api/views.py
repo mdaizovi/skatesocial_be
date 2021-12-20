@@ -1,3 +1,4 @@
+from itertools import chain
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -13,9 +14,10 @@ from rest_framework.generics import (
     CreateAPIView,
     RetrieveUpdateAPIView,
     DestroyAPIView,
+    ListAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
-
+from accounts.api.serializers import UserBasicSerializer
 from ..models import FriendRequest, Friendship
 from .serializers import FriendRequestCreateSerializer, FriendRequestRespondSerializer
 
@@ -98,3 +100,36 @@ class UnfriendView(DestroyAPIView):
 
     def get_queryset(self):
         return Friendship.objects.filter(users=self.request.user)
+
+
+class FriendListView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserBasicSerializer
+
+    # def get_queryset(self):
+    #     qset_list = [u.users.exclude(pk=user.pk)
+    #                  for u in user.friendship_set.all()]
+    #     if len(qset_list) > 1:
+    #         return qset_list[0].union(**qset_list[1:])
+    #     elif len(qset_list) == 1:
+    #         qset_list[0]
+    #     else:
+    #         return Friendship.objects.filter(pk=None)  # empty queryset
+
+    def get_queryset(self):
+        qset_list = [
+            u.users.exclude(pk=self.request.user.pk)
+            for u in self.request.user.friendship_set.all()
+        ]
+        return list(chain(*qset_list))
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"users": serializer.data})

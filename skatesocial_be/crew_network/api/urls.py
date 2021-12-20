@@ -4,9 +4,11 @@ from .views import (
     FriendRequestRespondView,
     FriendRequestCancelView,
     UnfriendView,
+    FriendListView,
 )
 
 urlpatterns = [
+    path("friends/list/", FriendListView.as_view(), name="my-friend"),
     path("friends/add/<int:pk>/", FriendRequestCreateView.as_view(), name="add-friend"),
     path(
         "friends/remove/<int:pk>/",
