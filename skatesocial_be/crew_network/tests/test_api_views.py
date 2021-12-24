@@ -99,7 +99,7 @@ class CrewCreateEditDeleteTestCase(APITestCase):
         crew.save()
         crew_pk = crew.pk
         crew.members.add(self.user)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 204)
         self.assertTrue(Crew.objects.filter(pk=crew_pk).exists())
 
         # Clean up

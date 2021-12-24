@@ -26,6 +26,7 @@ from .serializers import (
     CrewUpdateSerializer,
     CrewDetailSerializer,
 )
+from utils.api.views import ListObjectAPIView
 
 User = get_user_model()
 
@@ -108,9 +109,10 @@ class UnfriendAPIView(DestroyAPIView):
         return Friendship.objects.filter(users=self.request.user)
 
 
-class FriendListAPIView(ListAPIView):
+class FriendListAPIView(ListObjectAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserBasicSerializer
+    key = "friends"
 
     def get_queryset(self):
         qset_list = [
@@ -119,38 +121,13 @@ class FriendListAPIView(ListAPIView):
         ]
         return list(chain(*qset_list))
 
-    def list(self, request, *args, **kwargs):
-        """
-        overwritten just be I wanted response to be {"users":[]} instead of just a list of users
-        """
-        queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({"users": serializer.data})
-
-
-class CrewListAPIView(ListAPIView):
+class CrewListAPIView(ListObjectAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CrewUpdateSerializer
 
     def get_queryset(self):
         return Crew.objects.filter(owned_by=self.request.user)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        model_name = self.serializer_class.get_model_name(many=True)
-        return Response({model_name: serializer.data})
 
 
 class CrewCreateAPIView(CreateAPIView):
