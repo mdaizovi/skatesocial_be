@@ -1,28 +1,40 @@
 from django.urls import include, path, re_path
 from .views import (
-    FriendRequestCreateView,
-    FriendRequestRespondView,
-    FriendRequestCancelView,
-    UnfriendView,
-    FriendListView,
+    FriendRequestCreateAPIView,
+    FriendRequestRespondAPIView,
+    FriendRequestCancelAPIView,
+    UnfriendAPIView,
+    FriendListAPIView,
+    CrewListAPIView,
+    CrewCreateAPIView,
+    CrewRetrieveUpdateDestroyAPIView,
 )
 
 urlpatterns = [
-    path("friends/list/", FriendListView.as_view(), name="my-friend"),
-    path("friends/add/<int:pk>/", FriendRequestCreateView.as_view(), name="add-friend"),
+    path("friends/list/", FriendListAPIView.as_view(), name="my-friend"),
+    path(
+        "friends/add/<int:pk>/", FriendRequestCreateAPIView.as_view(), name="add-friend"
+    ),
     path(
         "friends/remove/<int:pk>/",
-        UnfriendView.as_view(),
+        UnfriendAPIView.as_view(),
         name="remove-friend",
     ),
     path(
         "friend-request/respond/<int:pk>/",
-        FriendRequestRespondView.as_view(),
+        FriendRequestRespondAPIView.as_view(),
         name="friend-request-respond",
     ),
     path(
         "friend-request/cancel/<int:pk>/",
-        FriendRequestCancelView.as_view(),
+        FriendRequestCancelAPIView.as_view(),
         name="friend-request-cancel",
+    ),
+    path("crews/list/", CrewListAPIView.as_view(), name="crew-list"),
+    path("crew/create/", CrewCreateAPIView.as_view(), name="create-crew"),
+    path(
+        "crew/edit/<int:pk>/",
+        CrewRetrieveUpdateDestroyAPIView.as_view(),
+        name="edit-crew",
     ),
 ]

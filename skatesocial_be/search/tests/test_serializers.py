@@ -39,7 +39,7 @@ class SearchResultsSerializerTestCase(APITestCase):
         search_results_users = response.data["users"]
         connection_options = search_results_users[0]["connection_options"]
         # self.assertEqual(connection_options["action"], "F")
-        self.assertEqual(connection_options, {"action": "F"})
+        self.assertEqual(connection_options, {"action": "F", "id": self.target.id})
 
         # Make us friends, offer to unfriend and provide friendship id
         friendship = Friendship.objects.create()

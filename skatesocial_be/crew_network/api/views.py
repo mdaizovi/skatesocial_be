@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-
+import json
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -15,16 +15,22 @@ from rest_framework.generics import (
     RetrieveUpdateAPIView,
     DestroyAPIView,
     ListAPIView,
+    RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 from accounts.api.serializers import UserBasicSerializer
-from ..models import FriendRequest, Friendship
-from .serializers import FriendRequestCreateSerializer, FriendRequestRespondSerializer
+from ..models import FriendRequest, Friendship, Crew
+from .serializers import (
+    FriendRequestCreateSerializer,
+    FriendRequestRespondSerializer,
+    CrewUpdateSerializer,
+    CrewDetailSerializer,
+)
 
 User = get_user_model()
 
 
-class FriendRequestCreateView(GenericAPIView):
+class FriendRequestCreateAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     allowed_methods = ("POST",)
 
@@ -51,7 +57,7 @@ class FriendRequestCreateView(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FriendRequestRespondView(GenericAPIView):
+class FriendRequestRespondAPIView(GenericAPIView):
     serializer_class = FriendRequestRespondSerializer
     permission_classes = (IsAuthenticated,)
     allowed_methods = ("POST",)
@@ -84,7 +90,7 @@ class FriendRequestRespondView(GenericAPIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class FriendRequestCancelView(DestroyAPIView):
+class FriendRequestCancelAPIView(DestroyAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = None
     # allowed_methods = ("DEL",)
@@ -93,7 +99,7 @@ class FriendRequestCancelView(DestroyAPIView):
         return FriendRequest.objects.filter(initiated_by__pk=self.request.user.pk)
 
 
-class UnfriendView(DestroyAPIView):
+class UnfriendAPIView(DestroyAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = None
     # allowed_methods = ("DEL",)
@@ -102,19 +108,9 @@ class UnfriendView(DestroyAPIView):
         return Friendship.objects.filter(users=self.request.user)
 
 
-class FriendListView(ListAPIView):
+class FriendListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserBasicSerializer
-
-    # def get_queryset(self):
-    #     qset_list = [u.users.exclude(pk=user.pk)
-    #                  for u in user.friendship_set.all()]
-    #     if len(qset_list) > 1:
-    #         return qset_list[0].union(**qset_list[1:])
-    #     elif len(qset_list) == 1:
-    #         qset_list[0]
-    #     else:
-    #         return Friendship.objects.filter(pk=None)  # empty queryset
 
     def get_queryset(self):
         qset_list = [
@@ -124,6 +120,9 @@ class FriendListView(ListAPIView):
         return list(chain(*qset_list))
 
     def list(self, request, *args, **kwargs):
+        """
+        overwritten just be I wanted response to be {"users":[]} instead of just a list of users
+        """
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
@@ -133,3 +132,53 @@ class FriendListView(ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({"users": serializer.data})
+
+
+class CrewListAPIView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CrewUpdateSerializer
+
+    def get_queryset(self):
+        return Crew.objects.filter(owned_by=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        model_name = self.serializer_class.get_model_name(many=True)
+        return Response({model_name: serializer.data})
+
+
+class CrewCreateAPIView(CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CrewUpdateSerializer
+
+    def get_queryset(self):
+        return Crew.objects.filter(owned_by=self.request.user)
+
+    def perform_create(self, serializer):
+        mutable = self.request.data._mutable
+        self.request.data._mutable = True
+        self.request.data["user"] = self.request.user.pk
+        self.request.data._mutable = mutable
+        return super().perform_create(self, serializer)
+
+
+class CrewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CrewUpdateSerializer
+
+    def get_queryset(self):
+        return Crew.objects.filter(owned_by=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Subclass so can use a more detailed serializer on GET
+        """
+        instance = self.get_object()
+        serializer = CrewDetailSerializer(instance)
+        return Response(serializer.data)

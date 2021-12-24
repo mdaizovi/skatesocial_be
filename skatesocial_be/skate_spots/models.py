@@ -2,8 +2,10 @@ from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
 
 from django_countries.fields import CountryField
+from django.contrib.gis.geos import fromstr, Point
 
 from .model_choices import SpotTypeChoices
+from .model_managers import SpotManager
 
 User = get_user_model()
 
@@ -43,7 +45,7 @@ class Spot(models.Model):
 
     name = models.CharField(max_length=250)
     address = models.CharField(max_length=100)
-    city = models.CharField(max_length=100, null=True, blank=True)
+    city = models.ForeignKey(City, null=True, blank=True, on_delete=models.SET_NULL)
 
     lat = models.DecimalField(max_digits=19, decimal_places=10, null=True, blank=True)
     lon = models.DecimalField(max_digits=19, decimal_places=10, null=True, blank=True)
@@ -54,11 +56,40 @@ class Spot(models.Model):
         choices=SpotTypeChoices.CHOICES,
         default=SpotTypeChoices.STREET,
     )
+    private = models.BooleanField(default=False)
     submitted_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL
     )
+    objects = SpotManager()
 
     def __str__(self):
-        return "<{}> {}: {}, {}".format(
-            self.__class__.__name__, self.name, self.city.name, self.city.country.code
-        )
+        if self.city and self.city.country:
+            return "<{}> {}: {}, {}".format(
+                self.__class__.__name__,
+                self.name,
+                self.city.name,
+                self.city.country.code,
+            )
+        else:
+            return "<{}>: {}".format(self.__class__.__name__, self.name)
+
+    def location_from_lon_lat(self):
+        # Don't save here, save after.
+        if not self.location and (self.lon and self.lat):
+            self.location = fromstr(
+                ("POINT(%s %s)" % (str(self.lon), str(self.lat))), srid=4326
+            )
+
+    def save(self, *args, **kwargs):
+        self.location_from_lon_lat()
+        super(Spot, self).save()
+
+
+class SpotAlias(models.Model):
+
+    help_text = "AKA for spots that are commonly called more than 1 thing"
+    name = models.CharField(max_length=250)
+    spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "<{}>: {} ({})".format(self.__class__.__name__, self.name, self.spot)

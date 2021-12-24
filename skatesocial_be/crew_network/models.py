@@ -43,7 +43,10 @@ class Crew(models.Model):
 
     name = models.CharField(max_length=100)
     owned_by = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="crews_owned"
+        User,
+        on_delete=models.CASCADE,
+        help_text="User that made this crew, for their provacy reasons",
+        related_name="crews_owned",
     )
     members = models.ManyToManyField(User, related_name="crews_included")
 
