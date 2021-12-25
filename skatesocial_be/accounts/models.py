@@ -7,6 +7,9 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     name = models.CharField(unique=True, null=True, blank=True, max_length=50)
 
+    class Meta:
+        ordering = ("username", "name")
+
     @property
     def friends(self):
         qset_list = [u.users.exclude(pk=self.pk) for u in self.friendship_set.all()]

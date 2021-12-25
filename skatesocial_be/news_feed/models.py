@@ -35,6 +35,9 @@ class Event(models.Model):
         related_name="events_hidden",
     )
 
+    class Meta:
+        ordering = ("created_at", "user")
+
     def __str__(self):
         return "<{}> {}, {}".format(
             self.__class__.__name__,
@@ -53,3 +56,6 @@ class EventResponse(models.Model):
     rsvp = models.CharField(
         max_length=1, choices=EventResponseChoices.CHOICES, null=True, blank=True
     )
+
+    class Meta:
+        ordering = ("event", "user")

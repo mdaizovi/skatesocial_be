@@ -62,6 +62,9 @@ class Spot(models.Model):
     )
     objects = SpotManager()
 
+    class Meta:
+        ordering = ("name",)
+
     def __str__(self):
         if self.city and self.city.country:
             return "<{}> {}: {}, {}".format(
