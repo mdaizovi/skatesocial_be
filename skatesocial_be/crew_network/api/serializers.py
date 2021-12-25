@@ -19,14 +19,11 @@ class FriendRequestRespondSerializer(serializers.Serializer):
 
 class CrewUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=False)
-    members = serializers.PrimaryKeyRelatedField(
-        queryset=Crew.objects.all(), required=False
-    )
+    members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
 
     class Meta:
         model = Crew
         fields = ("id", "name", "members")
-        depth = 1
 
 
 class CrewMemberSerializer(serializers.ModelSerializer):

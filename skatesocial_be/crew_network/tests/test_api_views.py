@@ -36,7 +36,7 @@ class CrewCreateEditDeleteTestCase(APITestCase):
         # Assert can make crew
         response = self.client.post(
             self.create_url,
-            {"name": self.self.crew_name, "members": [self.friend.pk]},
+            {"name": self.crew_name, "members": [self.friend.pk]},
         )
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.user.crews_owned.count(), 1)
@@ -47,7 +47,7 @@ class CrewCreateEditDeleteTestCase(APITestCase):
         self.assertTrue(self.friend in crew.members.all())
 
         # Assert crew owner is user
-        self.assertEqual(crew.owner, self.user)
+        self.assertEqual(crew.owned_by, self.user)
 
         # Clean up
         crew.delete()

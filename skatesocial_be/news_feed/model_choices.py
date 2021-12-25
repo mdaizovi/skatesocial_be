@@ -1,12 +1,10 @@
-class PrivacyChoices:
-    PUBLIC = "P"
-    FRIENDS = "F"
-    CREW = "C"
-    EXCEPT = "E"  # like "friends except"
+class EventResponseChoices:
+    GOING = "G"
+    NOT_GOING = "N"
+    MAYBE = "M"
 
     CHOICES = (
-        (PUBLIC, "Public"),
-        (FRIENDS, "Friends"),
-        (CREW, "Crew"),
-        (EXCEPT, "Except"),
+        (GOING, "Going"),
+        (NOT_GOING, "Not Going"),
+        (MAYBE, "Maybe"),
     )

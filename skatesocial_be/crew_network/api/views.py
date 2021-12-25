@@ -1,4 +1,3 @@
-from itertools import chain
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -115,11 +114,7 @@ class FriendListAPIView(ListObjectAPIView):
     key = "friends"
 
     def get_queryset(self):
-        qset_list = [
-            u.users.exclude(pk=self.request.user.pk)
-            for u in self.request.user.friendship_set.all()
-        ]
-        return list(chain(*qset_list))
+        return self.request.user.friends
 
 
 class CrewListAPIView(ListObjectAPIView):
@@ -138,11 +133,7 @@ class CrewCreateAPIView(CreateAPIView):
         return Crew.objects.filter(owned_by=self.request.user)
 
     def perform_create(self, serializer):
-        mutable = self.request.data._mutable
-        self.request.data._mutable = True
-        self.request.data["user"] = self.request.user.pk
-        self.request.data._mutable = mutable
-        return super().perform_create(self, serializer)
+        serializer.save(owned_by=self.request.user)
 
 
 class CrewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):

@@ -44,7 +44,7 @@ class City(models.Model):
 class Spot(models.Model):
 
     name = models.CharField(max_length=250)
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=100, null=True, blank=True)
     city = models.ForeignKey(City, null=True, blank=True, on_delete=models.SET_NULL)
 
     lat = models.DecimalField(max_digits=19, decimal_places=10, null=True, blank=True)
