@@ -26,6 +26,7 @@ class EventCreateEditDeleteTestCase(APITestCase):
             username="frenemy", email="frenemy@email.com"
         )
         self.spot = Spot.objects.create(name="G3")
+        self.event_text = "Come Skate with me :-)"
         self.client.force_authenticate(user=self.user)
 
         self.create_url = "/api/news/event/create/"
@@ -41,76 +42,64 @@ class EventCreateEditDeleteTestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.user.event_set.count(), 1)
 
-        # Assert can update event
+        # Assert event is as we intended
         event = self.user.event_set.first()
-        text = "Come Skate with me!"
+        self.assertEqual(event.spot.pk, self.spot.pk)
+
+        # Clean up
+        event.delete()
+
+    def test_event_edit_view(self):
+        # Make event
+        event = Event.objects.create(
+            user=self.user, spot=self.spot, text=self.event_text
+        )
+
+        # Assert can update event
+        text2 = "Nevermind, rain :-("
         response = self.client.patch(
-            self.edit_url + "{}/".format(event.pk), {"text": text}
+            self.edit_url + "{}/".format(event.pk), {"text": text2}
         )
         self.assertEqual(response.status_code, 200)
         event.refresh_from_db()
-        self.assertEqual(event.text, text)
+        # Spot hasn't changed...
+        self.assertEqual(event.spot, self.spot)
+        # ... but the text has
+        self.assertEqual(event.text, text2)
 
-        # Assert can delete event
-        response = self.client.delete(
-            self.edit_url + "{}/".format(event.pk), {"text": text}
+        # Assert friend can't change your event
+        self.client.force_authenticate(user=self.friend)
+        response = self.client.patch(
+            self.edit_url + "{}/".format(event.pk), {"text": self.event_text}
         )
-        self.assertEqual(response.status_code, 204)
-        self.assertEqual(self.user.event_set.count(), 0)
+        self.assertEqual(response.status_code, 404)
+        event.refresh_from_db()
+        # Assert it hasn't changed, it's still text2 from self.user's last update
+        self.assertEqual(event.text, text2)
+
+        # Clean up
+        self.client.force_authenticate(user=self.user)
+        event.delete()
 
     def test_event_visibility(self):
+        # TODO
         pass
 
-    # def test_crew_edit_view(self):
-    #     # Assert no crews right now
-    #     self.assertEqual(self.user.crews_owned.count(), 0)
+    def test_event_delete(self):
+        # Create event
+        event = Event.objects.create(
+            user=self.user, spot=self.spot, text=self.event_text
+        )
+        event_pk = event.pk
 
-    #     crew = Crew.objects.create(owned_by=self.user, name=self.crew_name)
-    #     # Update Crew
-    #     other_name = "Something Different"
-    #     self.client.patch(
-    #         self.edit_url + "{}/".format(crew.pk),
-    #         {"name": other_name, "members": [
-    #             self.friend.pk, self.other_friend.pk]},
-    #     )
-    #     crew.refresh_from_db()
-    #     self.assertTrue(self.friend in crew.members.all())
-    #     self.assertTrue(self.other_friend in crew.members.all())
+        # Log in as friend, try to delete. Should fail
+        self.client.force_authenticate(user=self.friend)
+        response = self.client.delete(self.edit_url + "{}/".format(event.pk))
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Event.objects.filter(pk=event_pk).exists())
 
-    #     # Assert removing user from list of users removes them from crew
-    #     self.client.patch(
-    #         self.edit_url + "{}/".format(crew.pk),
-    #         {"name": other_name, "members": [self.friend.pk]},
-    #     )
-    #     crew.refresh_from_db()
-    #     self.assertTrue(self.friend in crew.members.all())
-    #     self.assertFalse(self.other_friend in crew.members.all())
-
-    #     # Clean up
-    #     crew.delete()
-
-    # def test_crew_delete_view(self):
-    #     # Assert no crews right now
-    #     self.assertEqual(self.user.crews_owned.count(), 0)
-
-    #     # Set up a crew
-    #     crew = Crew.objects.create(owned_by=self.user, name=self.crew_name)
-    #     crew.save()
-    #     crew.members.add(self.friend)
-    #     self.assertEqual(self.user.crews_owned.count(), 1)
-
-    #     # Delete crew
-    #     response = self.client.delete(self.edit_url + "{}/".format(crew.pk))
-    #     self.assertEqual(response.status_code, 204)
-    #     self.assertEqual(self.user.crews_owned.count(), 0)
-
-    #     # Can't delete a crew that's not owned by me
-    #     crew = Crew.objects.create(owned_by=self.friend, name=self.crew_name)
-    #     crew.save()
-    #     crew_pk = crew.pk
-    #     crew.members.add(self.user)
-    #     self.assertEqual(response.status_code, 204)
-    #     self.assertTrue(Crew.objects.filter(pk=crew_pk).exists())
-
-    #     # Clean up
-    #     crew.delete()
+        # Log in as user, try to delete. Should work.
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(self.edit_url + "{}/".format(event.pk))
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Event.objects.filter(pk=event_pk).exists())
