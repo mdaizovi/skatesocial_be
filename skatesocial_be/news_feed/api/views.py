@@ -49,6 +49,7 @@ class EventUpdateAPIView(RetrieveUpdateDestroyAPIView):
     # return serializers.Default # I dont' know what you want for create/destroy/update.
 
 
+# TODO
 # Event View, for looking at other people's posts. obv with limited permissions.
 # Make post reaction
 # delete post reaction (undo)
