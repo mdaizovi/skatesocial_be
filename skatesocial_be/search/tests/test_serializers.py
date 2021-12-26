@@ -34,7 +34,7 @@ class SearchResultsSerializerTestCase(APITestCase):
 
         # First we're not friends, so offer to make it so.
         self.assertEqual(self.friendship_exists_query.count(), 0)
-        response = self.client.get("/api/search/", {"search": self.target.email})
+        response = self.client.get("/api/v1/search/", {"search": self.target.email})
         self.assertEqual(response.status_code, 200)
         search_results_users = response.data["users"]
         connection_options = search_results_users[0]["connection_options"]
@@ -44,7 +44,7 @@ class SearchResultsSerializerTestCase(APITestCase):
         # Make us friends, offer to unfriend and provide friendship id
         friendship = Friendship.objects.create()
         friendship.users.set([self.user, self.target])
-        response = self.client.get("/api/search/", {"search": self.target.email})
+        response = self.client.get("/api/v1/search/", {"search": self.target.email})
         self.assertEqual(response.status_code, 200)
         search_results_users = response.data["users"]
         connection_options = search_results_users[0]["connection_options"]
@@ -55,7 +55,7 @@ class SearchResultsSerializerTestCase(APITestCase):
         friend_request = FriendRequest.objects.create(
             initiated_by=self.user, target=self.target
         )
-        response = self.client.get("/api/search/", {"search": self.target.email})
+        response = self.client.get("/api/v1/search/", {"search": self.target.email})
         self.assertEqual(response.status_code, 200)
         search_results_users = response.data["users"]
         connection_options = search_results_users[0]["connection_options"]
@@ -66,7 +66,7 @@ class SearchResultsSerializerTestCase(APITestCase):
         friend_request = FriendRequest.objects.create(
             initiated_by=self.target, target=self.user
         )
-        response = self.client.get("/api/search/", {"search": self.target.email})
+        response = self.client.get("/api/v1/search/", {"search": self.target.email})
         self.assertEqual(response.status_code, 200)
         search_results_users = response.data["users"]
         connection_options = search_results_users[0]["connection_options"]

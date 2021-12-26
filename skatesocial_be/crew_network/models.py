@@ -1,6 +1,8 @@
-from django.db import models
+from .signals import remove_deleted_friend_from_crews
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models.signals import pre_save, pre_delete
 
 User = get_user_model()
 
@@ -36,6 +38,13 @@ class Friendship(models.Model):
     def __str__(self):
         user_str = ", ".join([str(x) for x in self.users.all()])
         return "<{}>: {}".format(self.__class__.__name__, user_str)
+
+
+pre_delete.connect(
+    remove_deleted_friend_from_crews,
+    sender=Friendship,
+    dispatch_uid="remove-deleted-friend-from-crews",
+)
 
 
 class Crew(models.Model):

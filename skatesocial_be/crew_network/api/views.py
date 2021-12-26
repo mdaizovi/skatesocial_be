@@ -46,6 +46,7 @@ class FriendRequestCreateAPIView(GenericAPIView):
 
         # None of those requests should happen, client shouldn't offer possibilty
         # ... just being sure
+        # (properly this should be PUT)
         # First check to make sure they aren't already friends
         if not Friendship.objects.filter(users=user).filter(users=target).exists():
             # Next check that the friend request doesn't already exist in other direction
@@ -106,7 +107,6 @@ class FriendRequestRespondCancelAPIView(RetrieveUpdateDestroyAPIView):
 class UnfriendAPIView(DestroyAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = None
-    # allowed_methods = ("DEL",)
 
     def get_queryset(self):
         return Friendship.objects.filter(users=self.request.user)
