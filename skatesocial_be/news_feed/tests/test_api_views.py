@@ -31,8 +31,7 @@ class EventCreateEditDeleteTestCase(APITestCase):
         self.event_text = "Come Skate with me :-)"
         self.client.force_authenticate(user=self.user)
 
-        self.event_url = "/api/news/events"
-        self.view_url = "/api/news/events"
+        self.event_url = "/api/v1/news/events"
 
     def test_event_create_view(self):
         # Assert no events right now
