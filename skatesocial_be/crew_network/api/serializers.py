@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from rest_framework import serializers, exceptions
 from ..models import FriendRequest, Friendship, Crew
+from accounts.api.serializers import UserViewSerializer
 
 User = get_user_model()
 
@@ -17,6 +18,14 @@ class FriendRequestRespondSerializer(serializers.Serializer):
     user_response = serializers.IntegerField(required=True)
 
 
+class CrewBasicSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+
+    class Meta:
+        model = Crew
+        fields = ("id", "name")
+
+
 class CrewUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=False)
     members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
@@ -26,20 +35,9 @@ class CrewUpdateSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "members")
 
 
-class CrewMemberSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "username",
-            "name",
-            # add image when i add the field
-        )
-
-
 class CrewDetailSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
-    members = CrewMemberSerializer()
+    members = UserViewSerializer(many=True)
 
     class Meta:
         model = Crew

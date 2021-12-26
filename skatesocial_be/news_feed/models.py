@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 from .model_choices import EventResponseChoices
+from .model_managers import EventManager
 from crew_network.models import Crew
 
 User = get_user_model()
@@ -21,10 +22,12 @@ class Event(models.Model):
     visible_to_friends = models.ManyToManyField(
         User,
         related_name="events_visible",
+        help_text="If supplied, it will be visible to *only* these friends/crews, not any and all friends",
     )
     visible_to_crews = models.ManyToManyField(
         Crew,
         related_name="events_visible",
+        help_text="If supplied, it will be visible to *only* these friends/crews, not any and all friends",
     )
     hidden_from_friends = models.ManyToManyField(
         User,
@@ -34,6 +37,7 @@ class Event(models.Model):
         Crew,
         related_name="events_hidden",
     )
+    objects = EventManager()
 
     class Meta:
         ordering = ("created_at", "user")

@@ -9,6 +9,7 @@ from rest_framework.generics import (
     get_object_or_404,
     CreateAPIView,
     RetrieveUpdateAPIView,
+    RetrieveAPIView,
     DestroyAPIView,
     ListAPIView,
     RetrieveUpdateDestroyAPIView,
@@ -16,7 +17,11 @@ from rest_framework.generics import (
 from rest_framework.permissions import IsAuthenticated
 
 from ..models import Event, EventResponse
-from .serializers import EventUpdateSerializer
+from .serializers import (
+    EventUpdateSerializer,
+    EventViewBasicSerializer,
+    EventViewDetailSerializer,
+)
 
 User = get_user_model()
 
@@ -34,22 +39,25 @@ class EventCreateAPIView(CreateAPIView):
 
 class EventUpdateAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = EventUpdateSerializer
-    allowed_methods = ("PATCH", "DELETE")
 
     def get_queryset(self):
-        return Event.objects.filter(user=self.request.user)
+        if self.request.method == "GET":
+            # anything that's visible to you
+            return Event.objects.visible_to_user(user=self.request.user)
+        else:  # can only patch or delete what you own
+            return Event.objects.filter(user=self.request.user)
 
-    # def get_serializer_class(self):
-    #     pass
-    # if self.action == 'list':
-    #     return serializers.ListaGruppi
-    # if self.action == 'retrieve':
-    #     return serializers.DettaglioGruppi
-    # return serializers.Default # I dont' know what you want for create/destroy/update.
+    def get_serializer_class(self):
+        obj = self.get_object()
+        if self.request.method == "GET":
+            if self.request.user == obj.user:
+                return EventViewDetailSerializer
+            else:
+                return EventViewBasicSerializer
+        else:
+            return EventUpdateSerializer
 
 
 # TODO
-# Event View, for looking at other people's posts. obv with limited permissions.
 # Make post reaction
 # delete post reaction (undo)
