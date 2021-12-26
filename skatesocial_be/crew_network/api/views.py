@@ -32,6 +32,7 @@ User = get_user_model()
 
 class FriendRequestCreateAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = FriendRequestCreateSerializer
     allowed_methods = ("POST",)
 
     def get_queryset(self):
@@ -39,7 +40,9 @@ class FriendRequestCreateAPIView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        target = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target = serializer.validated_data["target"]
 
         # None of those requests should happen, client shouldn't offer possibilty
         # ... just being sure
@@ -57,15 +60,25 @@ class FriendRequestCreateAPIView(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FriendRequestRespondAPIView(GenericAPIView):
-    serializer_class = FriendRequestRespondSerializer
+class FriendRequestRespondCancelAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
-    allowed_methods = ("POST",)
+    allowed_methods = ("POST", "DELETE")
 
     def get_queryset(self):
-        return FriendRequest.objects.filter(target=self.request.user)
+        if self.request.method == "PATCH":
+            # Responding to a Friend Request from someone else
+            return FriendRequest.objects.filter(target=self.request.user)
+        if self.request.method == "DELETE":
+            # canceling your own friend request
+            return FriendRequest.objects.filter(initiated_by=self.request.user)
 
-    def post(self, request, *args, **kwargs):
+    def get_serializer_class(self):
+        if self.request.method == "PATCH":
+            return FriendRequestRespondSerializer
+        if self.request.method == "DELETE":
+            return None
+
+    def patch(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # no perform create
@@ -90,15 +103,6 @@ class FriendRequestRespondAPIView(GenericAPIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class FriendRequestCancelAPIView(DestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = None
-    # allowed_methods = ("DEL",)
-
-    def get_queryset(self):
-        return FriendRequest.objects.filter(initiated_by__pk=self.request.user.pk)
-
-
 class UnfriendAPIView(DestroyAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = None
@@ -111,21 +115,14 @@ class UnfriendAPIView(DestroyAPIView):
 class FriendListAPIView(ListObjectAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserBasicSerializer
+    allowed_methods = ("GET",)
     key = "friends"
 
     def get_queryset(self):
         return self.request.user.friends
 
 
-class CrewListAPIView(ListObjectAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = CrewUpdateSerializer
-
-    def get_queryset(self):
-        return Crew.objects.filter(owned_by=self.request.user)
-
-
-class CrewCreateAPIView(CreateAPIView):
+class CrewAPIView(ListObjectAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CrewUpdateSerializer
 

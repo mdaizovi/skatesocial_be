@@ -9,9 +9,11 @@ User = get_user_model()
 
 
 class FriendRequestCreateSerializer(serializers.ModelSerializer):
+    target = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
     class Meta:
         model = FriendRequest
-        fields = ("id",)
+        fields = ("id", "target")
 
 
 class FriendRequestRespondSerializer(serializers.Serializer):

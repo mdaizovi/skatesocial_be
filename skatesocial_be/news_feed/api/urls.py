@@ -8,6 +8,6 @@ urlpatterns = [
         "events/<int:pk>", EventUpdateAPIView.as_view(), name="event-view-update-delete"
     ),
     # TODO make other urls follow this best practice pattern.
-    # path("event_responses/", RegisterView.as_view(), name="event-response-create"),
-    # path("event_responses/<int:pk>", RegisterView.as_view(), name="event-response-view-update-delete"),
+    # path("events/<int:pk>/responses", RegisterView.as_view(), name="event-response-create"),
+    # path("events/<int:event_pk>/responses/<int:pk>", RegisterView.as_view(), name="event-response-view-update-delete"),
 ]

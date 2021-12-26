@@ -1,40 +1,33 @@
 from django.urls import include, path, re_path
 from .views import (
     FriendRequestCreateAPIView,
-    FriendRequestRespondAPIView,
-    FriendRequestCancelAPIView,
+    FriendRequestRespondCancelAPIView,
     UnfriendAPIView,
     FriendListAPIView,
-    CrewListAPIView,
-    CrewCreateAPIView,
+    CrewAPIView,
     CrewRetrieveUpdateDestroyAPIView,
 )
 
 urlpatterns = [
-    path("friends/list/", FriendListAPIView.as_view(), name="my-friend"),
+    path("friends", FriendListAPIView.as_view(), name="my-friends"),
     path(
-        "friends/add/<int:pk>/", FriendRequestCreateAPIView.as_view(), name="add-friend"
-    ),
-    path(
-        "friends/remove/<int:pk>/",
+        "friends/<int:pk>",
         UnfriendAPIView.as_view(),
         name="remove-friend",
     ),
     path(
-        "friend-request/respond/<int:pk>/",
-        FriendRequestRespondAPIView.as_view(),
-        name="friend-request-respond",
-    ),
+        "friends/requests", FriendRequestCreateAPIView.as_view(), name="add-friend"
+    ),  # POST only, with target in POST. TODO Should be PUT though, since I have it look for existing friend request.
     path(
-        "friend-request/cancel/<int:pk>/",
-        FriendRequestCancelAPIView.as_view(),
+        "friends/requests/<int:pk>",
+        FriendRequestRespondCancelAPIView.as_view(),
         name="friend-request-cancel",
-    ),
-    path("crews/list/", CrewListAPIView.as_view(), name="crew-list"),
-    path("crew/create/", CrewCreateAPIView.as_view(), name="create-crew"),
+    ),  # DEL to cancel one you started, PATCH to respond to one towards you
+    # GET to view a list of my crews, POST to create a crew
+    path("crews", CrewAPIView.as_view(), name="crew-list-or-create"),
     path(
-        "crew/edit/<int:pk>/",
+        "crews/<int:pk>",
         CrewRetrieveUpdateDestroyAPIView.as_view(),
-        name="edit-crew",
+        name="edit-crew",  # PATCH or #DELETE
     ),
 ]
