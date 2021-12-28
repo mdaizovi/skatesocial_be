@@ -25,7 +25,16 @@ class EventCreateEditDeleteTestCase(TestCase):
         self.frenemy = User.objects.create_user(
             username="frenemy", email="frenemy@email.com"
         )
-        friends = [self.friend, self.other_friend, self.acquaintance, self.collegue]
+        self.no_crew_friend = User.objects.create_user(
+            username="no_crew", email="no_crew@email.com"
+        )
+        friends = [
+            self.best_friend,
+            self.other_friend,
+            self.acquaintance,
+            self.frenemy,
+            self.no_crew_friend,
+        ]
         for f in friends:
             friendship = Friendship.objects.create()
             friendship.users.set([self.user, f])
@@ -42,20 +51,75 @@ class EventCreateEditDeleteTestCase(TestCase):
         self.spot = Spot.objects.create(name="G3")
 
     def test_visible_to_user(self):
-        pass
         # Hierarchy: most specific wins. ie if person is in hidden_from_crews but in visible_to_friends, they can see.
-        # if friend is in both  visible_to_friends and hidden_from_friends, hidden wins.
-
-        # Event with no privacy set should be visible to all friends, invisible to non-friends
+        # if friend is in both visible_to_friends and hidden_from_friends, hidden wins.
+        # ---
+        event = Event.objects.create(user=self.user, spot=self.spot)
+        # Event with no privacy set should be visible to all friends regardless of crew, invisible to non-friends
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.best_friend)]
+        )
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.no_crew_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.stranger)]
+        )
 
         # visible_to_crews should only be visible_to_friends in that crew, same as visible_to_friends. Hidden from everyone else.
+        event.visible_to_crews.add(self.bestie_crew)
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.best_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.frenemy)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.no_crew_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.stranger)]
+        )
+        # (reset this block)
+        event.visible_to_crews.clear()
 
         # hidden_from_crews hidden from friends in that crew, same as hidden_from_friends. Visible to everyone else.
+        event.hidden_from_crews.add(self.loose_crew)
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.best_friend)]
+        )
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.no_crew_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.frenemy)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.stranger)]
+        )
+        # (reset this block)
+        event.hidden_from_crews.clear()
 
         # if visible_to_crews but hidden_from_friend, friend should not see even if is in crew. Hidden to everyone else.
+        event.visible_to_crews.add(self.bestie_crew)
+        event.hidden_from_friends.add(self.other_friend)
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.best_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.other_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.no_crew_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.frenemy)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.stranger)]
+        )
+        # (reset this block)
+        event.visible_to_crews.clear()
+        event.hidden_from_friends.clear()
 
-        # hidden_from_crews and visible_to_friend should be visible to that friend, invisible to other crew members. Visible to other friends.
-
-        # if visible_to_crew and hidden_from_crew members intersect, hidden shoud win.
-
-        # if visible_to_friend and hidden_from_friend intersect, hidden shoud win.
+        # NOTE hidden_from_crews and visible_to_friend are incompatible together and shouldn't be offered.
