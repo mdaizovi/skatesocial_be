@@ -39,9 +39,9 @@ class EventCreateEditDeleteTestCase(TestCase):
             friendship = Friendship.objects.create()
             friendship.users.set([self.user, f])
 
-        self.bestie_crew = Crew.objects.create(owned_by=self.user)
+        self.bestie_crew = Crew.objects.create(owned_by=self.user, name="bestie_crew")
         self.bestie_crew.members.set([self.best_friend, self.other_friend])
-        self.loose_crew = Crew.objects.create(owned_by=self.user)
+        self.loose_crew = Crew.objects.create(owned_by=self.user, name="loose_crew")
         self.loose_crew.members.set([self.acquaintance, self.frenemy])
 
         self.stranger = User.objects.create_user(
