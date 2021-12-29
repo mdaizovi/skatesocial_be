@@ -44,7 +44,7 @@ class EventQuerySet(QuerySet):
         )
 
         return self.filter(Q(user__in=user.friends) | Q(user=user)).filter(
-            Q(basic_privacy) | Q(crews_included) | Q(crews_hidden)
+            Q(basic_privacy) | Q(crews_included) | Q(crews_hidden) | Q(user=user)
         )
 
 
