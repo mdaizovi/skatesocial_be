@@ -14,7 +14,6 @@ class EventQuerySet(QuerySet):
         """
         # user must be:
         #   - in friendship of person who wrote it if there are no visible_to_ s
-        # TODO
         #   - if any visible_to_ s are supplied,user must be in selected visible_to clauses
         #   - not in any of the hidden_from
         # User is not aware of these crews; they belong to other people
@@ -26,7 +25,9 @@ class EventQuerySet(QuerySet):
             hidden_from_friends=None,
             hidden_from_crews=None,
         )
-        # reminder & ~Q means "and not"
+        hidden_from_friends_but_not_from_me = Q(
+            visible_to_crews=None, hidden_from_friends__isnull=False
+        ) & ~Q(hidden_from_friends=user)
         crews_included = (
             Q(visible_to_crews__in=crews_user_is_in)
             & ~Q(hidden_from_crews__in=crews_user_is_in)
@@ -43,8 +44,16 @@ class EventQuerySet(QuerySet):
             hidden_from_my_crew_but_im_visible
         )
 
-        return self.filter(Q(user__in=user.friends) | Q(user=user)).filter(
-            Q(basic_privacy) | Q(crews_included) | Q(crews_hidden) | Q(user=user)
+        return (
+            self.filter(Q(user__in=user.friends) | Q(user=user))
+            .filter(
+                Q(basic_privacy)
+                | Q(hidden_from_friends_but_not_from_me)
+                | Q(crews_included)
+                | Q(crews_hidden)
+                | Q(user=user)
+            )
+            .exclude(hidden_from_friends=user)
         )
 
 

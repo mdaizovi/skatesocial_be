@@ -67,6 +67,24 @@ class EventCreateEditDeleteTestCase(TestCase):
             event in [e for e in Event.objects.visible_to_user(self.stranger)]
         )
 
+        # Basic hidden from friend
+        event.hidden_from_friends.add(self.frenemy)
+        self.assertTrue(event in [e for e in Event.objects.visible_to_user(self.user)])
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.best_friend)]
+        )
+        self.assertTrue(
+            event in [e for e in Event.objects.visible_to_user(self.no_crew_friend)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.frenemy)]
+        )
+        self.assertFalse(
+            event in [e for e in Event.objects.visible_to_user(self.stranger)]
+        )
+        # (reset this block)
+        event.hidden_from_friends.clear()
+
         # visible_to_crews should only be visible_to_friends in that crew, same as visible_to_friends. Hidden from everyone else.
         event.visible_to_crews.add(self.bestie_crew)
         self.assertTrue(event in [e for e in Event.objects.visible_to_user(self.user)])
@@ -105,8 +123,8 @@ class EventCreateEditDeleteTestCase(TestCase):
 
         # if visible_to_crews but hidden_from_friend, friend should not see even if is in crew. Hidden to everyone else.
         event.visible_to_crews.add(self.bestie_crew)
-        self.assertTrue(event in [e for e in Event.objects.visible_to_user(self.user)])
         event.hidden_from_friends.add(self.other_friend)
+        self.assertTrue(event in [e for e in Event.objects.visible_to_user(self.user)])
         self.assertTrue(
             event in [e for e in Event.objects.visible_to_user(self.best_friend)]
         )
