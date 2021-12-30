@@ -17,11 +17,11 @@ urlpatterns = [
     ),
     path(
         "friends/requests", FriendRequestCreateAPIView.as_view(), name="add-friend"
-    ),  # POST only, with target in POST. TODO Should be PUT though, since I have it look for existing friend request.
+    ),  # POST only, with target in POST.
     path(
         "friends/requests/<int:pk>",
         FriendRequestRespondCancelAPIView.as_view(),
-        name="friend-request-cancel",
+        name="friend-request-action",
     ),  # DEL to cancel one you started, PATCH to respond to one towards you
     # GET to view a list of my crews, POST to create a crew
     path("crews", CrewAPIView.as_view(), name="crew-list-or-create"),
