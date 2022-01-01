@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    name = models.CharField(unique=True, null=True, blank=True, max_length=50)
+    name = models.CharField(null=True, blank=True, max_length=50)
 
     class Meta:
         ordering = ("username", "name")

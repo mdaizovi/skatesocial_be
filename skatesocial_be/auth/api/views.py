@@ -21,6 +21,7 @@ from ..authentication import DecadeRefreshToken
 
 from accounts.api.serializers import UserBasicSerializer
 
+
 # @authentication_classes([]) is important because otherwise the client might send a bad token
 # and there will be an 'error decoding signature' that can cause the entire login to fail
 # with no notification
