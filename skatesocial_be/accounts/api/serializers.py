@@ -17,11 +17,8 @@ class UserViewSerializer(serializers.ModelSerializer):
 
 
 class UserBasicSerializer(serializers.ModelSerializer):
+    email_verified = serializers.ReadOnlyField()
+
     class Meta:
         model = User
-        fields = (
-            "id",
-            "username",
-            "name",
-            "email",
-        )
+        fields = ("id", "username", "name", "email", "email_verified")

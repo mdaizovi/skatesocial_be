@@ -14,3 +14,8 @@ class User(AbstractUser):
     def friends(self):
         qset_list = [u.users.exclude(pk=self.pk) for u in self.friendship_set.all()]
         return list(chain(*qset_list))
+
+    @property
+    def email_verified(self):
+        email = self.emailaddress_set.filter(primary=True).first()
+        return email.verified if email else False
