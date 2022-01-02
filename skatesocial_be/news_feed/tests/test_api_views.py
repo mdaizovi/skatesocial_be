@@ -8,6 +8,7 @@ from django.test.client import encode_multipart
 from rest_framework.test import APIRequestFactory, APITestCase
 from crew_network.models import Friendship
 from ..models import Event, EventResponse
+from ..model_choices import EventResponseChoices
 from skate_spots.models import Spot
 
 User = get_user_model()
@@ -163,27 +164,71 @@ class EventResponseCreateEditDeleteTestCase(APITestCase):
         self.assertEqual(self.user.eventresponse_set.count(), 0)
 
         # Assert can make eventresponse if code is accepted
-        response = self.client.post(url, {"rsvp": "G"})
+        response = self.client.post(url, {"rsvp": EventResponseChoices.GOING})
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.user.eventresponse_set.count(), 1)
 
         # Assert multiple eventresponse will not be created
-        response = self.client.post(url, {"rsvp": "G"})
+        response = self.client.post(url, {"rsvp": EventResponseChoices.GOING})
         self.assertEqual(response.status_code, 204)
         self.assertEqual(self.user.eventresponse_set.count(), 1)
 
         # Assert stranger cannot make event response
         self.client.force_authenticate(user=self.stranger)
-        response = self.client.post(url, {"rsvp": "G"})
+        response = self.client.post(url, {"rsvp": EventResponseChoices.GOING})
         self.assertEqual(response.status_code, 404)
         self.assertEqual(self.stranger.eventresponse_set.count(), 0)
 
         # Clean up
+        self.client.force_authenticate(user=self.user)
         eventresponse = self.user.eventresponse_set.first()
         eventresponse.delete()
 
     def test_event_response_update_view(self):
-        pass
+        eventresponse = EventResponse.objects.create(
+            user=self.user, event=self.event, rsvp=EventResponseChoices.MAYBE
+        )
+        self.assertEqual(eventresponse.rsvp, EventResponseChoices.MAYBE)
+        url = eventresponse.get_update_url()
+
+        # Assert can update my own event response
+        response = self.client.patch(url, {"rsvp": EventResponseChoices.GOING})
+        self.assertEqual(response.status_code, 200)
+        eventresponse.refresh_from_db()
+        self.assertEqual(eventresponse.rsvp, EventResponseChoices.GOING)
+
+        # Assert sending a bad rsvp doesn't save bad value
+        response = self.client.patch(url, {"rsvp": "X"})
+        self.assertEqual(response.status_code, 400)
+        eventresponse.refresh_from_db()
+        self.assertEqual(eventresponse.rsvp, EventResponseChoices.GOING)
+
+        # Assert friend can't update my event response
+        self.client.force_authenticate(user=self.stranger)
+        response = self.client.patch(url, {"rsvp": EventResponseChoices.NOT_GOING})
+        self.assertEqual(response.status_code, 404)
+        eventresponse.refresh_from_db()
+        self.assertEqual(eventresponse.rsvp, EventResponseChoices.GOING)
+
+        # Clean up
+        self.client.force_authenticate(user=self.user)
+        eventresponse.delete()
 
     def test_event_response_delete_view(self):
-        pass
+        eventresponse = EventResponse.objects.create(
+            user=self.user, event=self.event, rsvp=EventResponseChoices.MAYBE
+        )
+        eventresponse_pk = eventresponse.pk
+        url = eventresponse.get_update_url()
+
+        # Assert stranger can't delete my own event response
+        self.client.force_authenticate(user=self.stranger)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(EventResponse.objects.filter(pk=eventresponse_pk).exists())
+
+        # Assert I can delete my own
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(EventResponse.objects.filter(pk=eventresponse_pk).exists())
