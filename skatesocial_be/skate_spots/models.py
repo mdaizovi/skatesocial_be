@@ -96,3 +96,18 @@ class SpotAlias(models.Model):
 
     def __str__(self):
         return "<{}>: {} ({})".format(self.__class__.__name__, self.name, self.spot)
+
+
+class SpotReport(models.Model):
+
+    help_text = "User-submitted correction, etc"
+    text = models.TextField()
+    spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
+    submitted_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    def __str__(self):
+        return "<{}>: {} by {}".format(
+            self.__class__.__name__, self.spot, self.submitted_by
+        )
