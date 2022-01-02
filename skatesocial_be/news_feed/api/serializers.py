@@ -9,7 +9,7 @@ from accounts.api.serializers import UserViewSerializer
 from crew_network.api.serializers import CrewBasicSerializer
 from crew_network.models import Crew
 
-from ..models import Event
+from ..models import Event, EventResponse
 
 
 User = get_user_model()
@@ -19,6 +19,8 @@ class EventViewBasicSerializer(serializers.ModelSerializer):
     """
     Viewing Event if it's not yours
     """
+
+    # TODO add view options
 
     spot = SpotBasicSerializer()
 
@@ -89,4 +91,25 @@ class EventUpdateSerializer(serializers.ModelSerializer):
             "visible_to_crews",
             "hidden_from_friends",
             "hidden_from_crews",
+        )
+
+
+class EventResponseCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventResponse
+        fields = (
+            "id",
+            "rsvp",
+        )
+
+
+class EventResponseViewSerializer(serializers.ModelSerializer):
+    event = EventViewBasicSerializer()
+
+    class Meta:
+        model = EventResponse
+        fields = (
+            "id",
+            "event",
+            "rsvp",
         )

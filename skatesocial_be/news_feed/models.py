@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from .model_choices import EventResponseChoices
 from .model_managers import EventManager
@@ -53,6 +54,12 @@ class Event(models.Model):
         if (not self.text) and (not self.spot):
             raise ValidationError("Must have either text or a spot")
 
+    def get_update_url(self):
+        return reverse("event-view-update-delete", args=[str(self.pk)])
+
+    def get_create_response_url(self):
+        return reverse("event-response-create", args=[str(self.pk)])
+
 
 class EventResponse(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -63,3 +70,8 @@ class EventResponse(models.Model):
 
     class Meta:
         ordering = ("event", "user")
+
+    def get_update_url(self):
+        return reverse(
+            "event-response-view-update-delete", args=[str(self.event.pk), str(self.pk)]
+        )

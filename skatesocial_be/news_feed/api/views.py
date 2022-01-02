@@ -21,6 +21,7 @@ from .serializers import (
     EventUpdateSerializer,
     EventViewBasicSerializer,
     EventViewDetailSerializer,
+    EventResponseCreateUpdateSerializer,
 )
 
 User = get_user_model()
@@ -59,5 +60,50 @@ class EventUpdateAPIView(RetrieveUpdateDestroyAPIView):
 
 
 # TODO
-# Make post reaction
-# delete post reaction (undo)
+# TEST the EventResponse endpoints, don't know if they work
+
+
+class EventResponseCreateAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EventResponseCreateUpdateSerializer
+    allowed_methods = ("POST",)
+
+    def get_queryset(self):
+        event_pk = self.kwargs.get("event_pk")
+        # Can't respond to an event you can't see.
+        visible_events = Event.objects.visible_to_user(user=self.request.user)
+        return EventResponse.objects.filter(
+            event__pk=event_pk, event__in=visible_events, user=self.request.user
+        )
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        event = get_object_or_404(Event, pk=self.kwargs.get("event_pk"))
+        visible_events = Event.objects.visible_to_user(user=self.request.user)
+
+        if event in visible_events:
+            if not EventResponse.objects.filter(user=user, event=event).exists():
+                rsvp = serializer.validated_data["rsvp"]
+                event_response, created = EventResponse.objects.get_or_create(
+                    user=user, event=event, rsvp=rsvp
+                )
+                if created:
+                    return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class EventResponseUpdateAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EventResponseCreateUpdateSerializer
+    allowed_methods = ("PATCH", "DEL")
+
+    def get_queryset(self):
+        event_pk = self.kwargs.get("event_pk")
+        # Can't respond to an event you can't see.
+        visible_events = Event.objects.visible_to_user(user=self.request.user)
+        return EventResponse.objects.filter(
+            event__pk=event_pk, event__in=visible_events, user=self.request.user
+        )

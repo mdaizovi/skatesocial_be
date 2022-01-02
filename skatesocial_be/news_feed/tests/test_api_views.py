@@ -134,3 +134,56 @@ class EventCreateEditDeleteTestCase(APITestCase):
         response = self.client.delete(self.event_url + "/{}".format(event.pk))
         self.assertEqual(response.status_code, 204)
         self.assertFalse(Event.objects.filter(pk=event_pk).exists())
+
+
+class EventResponseCreateEditDeleteTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="Me", email="me@email.com")
+        self.friend = User.objects.create_user(
+            username="friend", email="friend@email.com"
+        )
+        friendship = Friendship.objects.create()
+        friendship.users.set([self.user, self.friend])
+        self.stranger = User.objects.create_user(
+            username="stranger", email="stranger@email.com"
+        )
+        self.spot = Spot.objects.create(name="G3")
+        self.event = Event.objects.create(user=self.friend, spot=self.spot)
+        self.client.force_authenticate(user=self.user)
+
+    def test_event_response_create_view(self):
+        # Assert no eventsresponse right now
+        self.assertEqual(self.user.eventresponse_set.count(), 0)
+
+        url = self.event.get_create_response_url()
+
+        # Assert nothing will happen if option is not in EventResponseChoices
+        response = self.client.post(url, {"rsvp": "X"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.user.eventresponse_set.count(), 0)
+
+        # Assert can make eventresponse if code is accepted
+        response = self.client.post(url, {"rsvp": "G"})
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(self.user.eventresponse_set.count(), 1)
+
+        # Assert multiple eventresponse will not be created
+        response = self.client.post(url, {"rsvp": "G"})
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(self.user.eventresponse_set.count(), 1)
+
+        # Assert stranger cannot make event response
+        self.client.force_authenticate(user=self.stranger)
+        response = self.client.post(url, {"rsvp": "G"})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.stranger.eventresponse_set.count(), 0)
+
+        # Clean up
+        eventresponse = self.user.eventresponse_set.first()
+        eventresponse.delete()
+
+    def test_event_response_update_view(self):
+        pass
+
+    def test_event_response_delete_view(self):
+        pass
