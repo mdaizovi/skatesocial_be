@@ -2,11 +2,14 @@ from django.urls import include, path, re_path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+)
+
+from .views import (
+    LoginView,
+    RegisterView,
     ResendVerificationEmailView,
     EmailChangeAPIView,
 )
-
-from .views import LoginView, RegisterView
 
 urlpatterns = [
     # api/auth/login/ Should be before rest auth LoginView to override it

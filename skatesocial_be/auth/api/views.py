@@ -99,9 +99,9 @@ class ResendVerificationEmailView(GenericAPIView):
         else:
             return Response(
                 {
-                    "detail": _(
-                        "Please supply an email address in your account settings"
-                    )
+                    "non_field_errors": [
+                        _("Please supply an email address in your account settings")
+                    ]
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
@@ -132,6 +132,5 @@ class EmailChangeAPIView(GenericAPIView):
         user.email = email
         user.save()
 
-        return Response(
-            {"detail": _("Email address updated")}, status=status.HTTP_200_OK
-        )
+        user_serializer = UserBasicSerializer(instance=user)
+        return Response(user_serializer.data, status=status.HTTP_200_OK)
