@@ -2,6 +2,8 @@ from django.urls import include, path, re_path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    ResendVerificationEmailView,
+    EmailChangeAPIView,
 )
 
 from .views import LoginView, RegisterView
@@ -14,5 +16,11 @@ urlpatterns = [
     # TODO: make sure verify-email, resend-email, and account-confirm-emai still work
     path("registration/", include("dj_rest_auth.registration.urls")),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path(
+        "registration/email/confirmation-resend/",
+        ResendVerificationEmailView.as_view(),
+        name="resend-email-confirmation",
+    ),
+    path("email/change/", EmailChangeAPIView.as_view(), name="change-email"),
     path("", include("dj_rest_auth.urls")),
 ]

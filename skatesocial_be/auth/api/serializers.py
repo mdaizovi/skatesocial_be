@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
+from allauth.utils import email_address_exists
 from rest_framework import serializers, exceptions
 from dj_rest_auth.serializers import LoginSerializer
 from rest_framework_simplejwt.serializers import (
@@ -77,3 +78,20 @@ class TokenSerializer(serializers.ModelSerializer):
 class UserTokenSerializer(serializers.Serializer):
     user = UserBasicSerializer()
     tokens = TokenSerializer()
+
+
+class EmailChangeSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        if email and email_address_exists(email, exclude_user=self.instance):
+            raise serializers.ValidationError(_("You cannot use this email address"))
+        if email == "":
+            raise serializers.ValidationError(_("Please supply a valid email address"))
+
+        return email
+
+    class Meta:
+        model = User
+        fields = ("email",)
+        extra_kwargs = {"email": {"required": True}}

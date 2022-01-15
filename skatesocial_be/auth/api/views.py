@@ -5,10 +5,15 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 
 from allauth.account import app_settings as allauth_settings
+from allauth.account.adapter import get_adapter
+from allauth.account.models import EmailAddress
+from allauth.account.utils import send_email_confirmation
 from dj_rest_auth.views import LoginView as RestAuthLoginView
 from dj_rest_auth.registration.views import RegisterView as RestAuthRegisterView
 from rest_framework import status
 from rest_framework.decorators import authentication_classes
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -16,6 +21,7 @@ from .serializers import (
     DualLogInSerializer,
     TokenSerializer,
     UserTokenSerializer,
+    EmailChangeSerializer,
 )
 from ..authentication import DecadeRefreshToken
 
@@ -72,3 +78,60 @@ class RegisterView(RestAuthRegisterView):
         )
         serializer.is_valid()
         return serializer.data
+
+
+class ResendVerificationEmailView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    allowed_methods = ("POST",)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        if user.email:
+            send_email_confirmation(request, user)
+            return Response(
+                {
+                    "detail": _(
+                        "Email confirmation has been sent to {}".format(user.email)
+                    )
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {
+                    "detail": _(
+                        "Please supply an email address in your account settings"
+                    )
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class EmailChangeAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    allowed_methods = ("PATCH",)
+    serializer_class = EmailChangeSerializer
+
+    def get_object(self):
+        return self.request.user
+
+    def patch(self, request, *args, **kwargs):
+        user = request.user
+        self.serializer = self.get_serializer(
+            instance=user, data=request.data, context={"request": request}
+        )
+        self.serializer.is_valid(raise_exception=True)
+        email = self.serializer.validated_data["email"]
+        user = request.user
+        # Set as primary and unverified.
+        email_address = EmailAddress.objects.add_email(
+            request, user, email, confirm=True
+        )
+        email_address.verified = False
+        email_address.set_as_primary()
+        user.email = email
+        user.save()
+
+        return Response(
+            {"detail": _("Email address updated")}, status=status.HTTP_200_OK
+        )
