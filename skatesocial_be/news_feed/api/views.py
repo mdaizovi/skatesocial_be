@@ -1,5 +1,10 @@
+import datetime
+import pytz
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import fromstr, Point, GEOSGeometry
+from django.contrib.gis.measure import D
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 
@@ -16,6 +21,8 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
+
+from utils.helper_functions import get_timezone_string
 
 from ..models import Event, EventResponse
 from .serializers import (
@@ -40,19 +47,34 @@ class NewsFeedHomeAPIView(GenericAPIView):
         data = {"notifications": [], "events": {"upcoming": [], "past": []}}
         # TODO needs to accept filters in GET
         # Filter needs to include MY posts. Otherwise just toss them in.
-        now = ""  # need to get user time zone for now.
         max_events = 25
 
-        upcoming_events = (
-            Event.objects.visible_to_user(user=self.request.user)
-            .filter(Q(start_at__gte=now) | Q(end_at__gte=now))
-            .order_by("start_at")[:max_events]
+        # All these should come from client
+        lat = self.request.query_params.get("lat", None)
+        lon = self.request.query_params.get("lon", None)
+        if not (lat and lon):
+            return Response(
+                {"status": "Required field not found: lat, lon"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        now = datetime.datetime.now(
+            pytz.timezone(get_timezone_string(lon=lon, lat=lat))
         )
-        past_events = (
-            Event.objects.visible_to_user(user=self.request.user)
-            .filter(start_at__lt=now)
-            .order_by("-start_at")[:max_events]
+        # arbitrary: Fenny to Stansi is 25 kilometers, Fenny to Potsdam HBF is 35
+        max_distance_k = self.request.query_params.get("max_distance_k", 30)
+        # pnt = GEOSGeometry('POINT({} {})'.format(lon, lat), srid=4326)
+        pnt = fromstr("POINT({} {})".format(lon, lat), srid=4326)
+
+        base_query = Event.objects.visible_to_user(user=self.request.user).filter(
+            spot__location__distance_lte=(pnt, D(km=max_distance_k))
         )
+
+        upcoming_events = base_query.filter(
+            Q(start_at__gte=now) | Q(end_at__gte=now).order_by("start_at")[:max_events]
+        )
+        past_events = base_query.filter(start_at__lt=now).order_by("-start_at")[
+            :max_events
+        ]
 
         data["events"]["upcoming"] = EventViewBasicSerializer(upcoming_events).data
         data["events"]["past"] = EventViewBasicSerializer(past_events).data

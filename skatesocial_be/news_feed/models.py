@@ -1,15 +1,15 @@
 from django.utils import timezone as django_timezone
-from timezonefinder import TimezoneFinder
-from pytz import timezone as pytz_timezone
 
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from crew_network.models import Crew
+from utils.helper_functions import get_timezone_string
+
 from .model_choices import EventResponseChoices, EventWheelChoices
 from .model_managers import EventManager
-from crew_network.models import Crew
 
 User = get_user_model()
 
@@ -59,9 +59,7 @@ class Event(models.Model):
     def save(self, *args, **kwargs):
         if all([self.spot, self.start_at]):
             if all([not self.start_at.tzinfo, self.spot.lon, self.spot.lat]):
-                tf = TimezoneFinder()
-                timezone_name = tf.timezone_at(lng=self.spot.lon, lat=self.spot.lat)
-                tz = pytz_timezone(timezone_name)
+                tz = get_timezone_string(lon=self.spot.lon, lat=self.spot.lat)
                 self.start_at = self.start_at.replace(tzinfo=tz)
         super().save(*args, **kwargs)
 
