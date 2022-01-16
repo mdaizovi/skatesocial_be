@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -25,6 +26,38 @@ from .serializers import (
 )
 
 User = get_user_model()
+
+
+class NewsFeedHomeAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = None
+    allowed_methods = ("GET",)
+    """
+    Filter needs to include MY posts. i guess otherwise just toss them in.
+    """
+
+    def get(self, request, format=None):
+        data = {"notifications": [], "events": {"upcoming": [], "past": []}}
+        # TODO needs to accept filters in GET
+        # Filter needs to include MY posts. Otherwise just toss them in.
+        now = ""  # need to get user time zone for now.
+        max_events = 25
+
+        upcoming_events = (
+            Event.objects.visible_to_user(user=self.request.user)
+            .filter(Q(start_at__gte=now) | Q(end_at__gte=now))
+            .order_by("start_at")[:max_events]
+        )
+        past_events = (
+            Event.objects.visible_to_user(user=self.request.user)
+            .filter(start_at__lt=now)
+            .order_by("-start_at")[:max_events]
+        )
+
+        data["events"]["upcoming"] = EventViewBasicSerializer(upcoming_events).data
+        data["events"]["past"] = EventViewBasicSerializer(past_events).data
+
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 class EventCreateAPIView(CreateAPIView):

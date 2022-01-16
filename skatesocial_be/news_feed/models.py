@@ -19,6 +19,7 @@ class Event(models.Model):
     text = models.CharField(max_length=250, null=True, blank=True)
     spot = models.ForeignKey("skate_spots.Spot", on_delete=models.CASCADE)
     start_at = models.DateTimeField(default=django_timezone.now)
+    end_at = models.DateTimeField(null=True, blank=True)
     wheel_type = models.CharField(
         max_length=1, null=True, blank=True, choices=EventWheelChoices.CHOICES
     )

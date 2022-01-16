@@ -68,4 +68,4 @@ class SearchView(GenericAPIView):
                 results.object_list, context={"request": request}, many=True
             ).data
 
-        return Response(data=data)
+        return Response(data=data, status=status.HTTP_200_OK)
