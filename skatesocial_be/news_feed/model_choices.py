@@ -8,3 +8,17 @@ class EventResponseChoices:
         (NOT_GOING, "Not Going"),
         (MAYBE, "Maybe"),
     )
+
+
+class EventWheelChoices:
+    SKATEBOARD = "B"
+    ROLLERSKATES = "R"
+    INLINES = "I"
+    WHEELCHAIR = "C"
+
+    CHOICES = (
+        (SKATEBOARD, "B"),
+        (ROLLERSKATES, "R"),
+        (INLINES, "I"),
+        (WHEELCHAIR, "C"),
+    )

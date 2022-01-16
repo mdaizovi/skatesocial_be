@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from .model_choices import EventResponseChoices
+from .model_choices import EventResponseChoices, EventWheelChoices
 from .model_managers import EventManager
 from crew_network.models import Crew
 
@@ -19,6 +19,9 @@ class Event(models.Model):
     text = models.CharField(max_length=250, null=True, blank=True)
     spot = models.ForeignKey("skate_spots.Spot", on_delete=models.CASCADE)
     start_at = models.DateTimeField(default=django_timezone.now)
+    wheel_type = models.CharField(
+        max_length=1, null=True, blank=True, choices=EventWheelChoices.CHOICES
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
