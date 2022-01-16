@@ -1,4 +1,6 @@
-from django.utils import timezone
+from django.utils import timezone as django_timezone
+from timezonefinder import TimezoneFinder
+from pytz import timezone as pytz_timezone
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -16,7 +18,7 @@ class Event(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.CharField(max_length=250, null=True, blank=True)
     spot = models.ForeignKey("skate_spots.Spot", on_delete=models.CASCADE)
-    start_at = models.DateTimeField(default=timezone.now)
+    start_at = models.DateTimeField(default=django_timezone.now)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -49,6 +51,15 @@ class Event(models.Model):
             self.user,
             self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
         )
+
+    def save(self, *args, **kwargs):
+        if all([self.spot, self.start_at]):
+            if all([not self.start_at.tzinfo, self.spot.lon, self.spot.lat]):
+                tf = TimezoneFinder()
+                timezone_name = tf.timezone_at(lng=self.spot.lon, lat=self.spot.lat)
+                tz = pytz_timezone(timezone_name)
+                self.start_at = self.start_at.replace(tzinfo=tz)
+        super().save(*args, **kwargs)
 
     def clean(self):
         if (not self.text) and (not self.spot):

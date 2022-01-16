@@ -59,6 +59,7 @@ sortedcontainers==2.4.0
 soupsieve==2.2
 sqlparse==0.4.1
 stevedore==3.3.0
+timezonefinder==5.2.0
 toml==0.10.2
 tomli==1.2.2
 trio==0.19.0
