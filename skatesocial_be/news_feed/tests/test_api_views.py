@@ -55,8 +55,12 @@ class NewsFeedHomeAPIViewTestCase(APITestCase):
         )
 
         response = self.client.get(
-            "{}?lat={}&lon={}".format(self.url, self.lat, self.lon)
+            "{}?lat={}&lon={}".format(self.url, self.lat, self.lon), format="json"
         )
+
+        print("\n\n")
+        print(json.dumps(response.json(), indent=4, sort_keys=True))
+
         self.assertEqual(response.status_code, 200)
         future_event_ids = [x["id"] for x in response.data["events"]["upcoming"]]
         self.assertTrue(future_event.pk in future_event_ids)
@@ -109,7 +113,10 @@ class EventCreateEditDeleteTestCase(APITestCase):
         self.assertEqual(self.user.event_set.count(), 0)
 
         # Assert can make event
-        response = self.client.post(self.event_url, {"spot": self.spot.pk})
+        response = self.client.post(
+            self.event_url, {"spot": self.spot.pk}, format="json"
+        )
+
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.user.event_set.count(), 1)
 

@@ -20,8 +20,9 @@ class EventViewBasicSerializer(serializers.ModelSerializer):
     Viewing Event if it's not yours
     """
 
-    # TODO add view options
-
+    created_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
+    start_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
+    end_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
     spot = SpotBasicSerializer()
 
     class Meta:
@@ -29,6 +30,7 @@ class EventViewBasicSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "created_at",
+            "end_at",
             "start_at",
             "spot",
             "text",
@@ -65,18 +67,22 @@ class EventUpdateSerializer(serializers.ModelSerializer):
     For setting Visibility, only has id for setting visibility (not all user/spot info)
     """
 
+    created_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
+    start_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
+    end_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
+
     spot = serializers.PrimaryKeyRelatedField(queryset=Spot.objects.all())
     visible_to_friends = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), many=True
+        queryset=User.objects.all(), many=True, required=False
     )
     visible_to_crews = serializers.PrimaryKeyRelatedField(
-        queryset=Crew.objects.all(), many=True
+        queryset=Crew.objects.all(), many=True, required=False
     )
     hidden_from_friends = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), many=True
+        queryset=User.objects.all(), many=True, required=False
     )
     hidden_from_crews = serializers.PrimaryKeyRelatedField(
-        queryset=Crew.objects.all(), many=True
+        queryset=Crew.objects.all(), many=True, required=False
     )
 
     class Meta:
@@ -87,6 +93,7 @@ class EventUpdateSerializer(serializers.ModelSerializer):
             "spot",
             "text",
             "start_at",
+            "end_at",
             "visible_to_friends",
             "visible_to_crews",
             "hidden_from_friends",

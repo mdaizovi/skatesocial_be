@@ -163,6 +163,9 @@ REST_FRAMEWORK = {
         # "rest_framework.authentication.SessionAuthentication", Removed so don't need csrf tokens, which are unnecessary if don't use browser
         "rest_framework.authentication.BasicAuthentication",
     ],
+    # Ehy don't either of these work?
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "DATE_INPUT_FORMATS": "%d-%m-%Y H:%M",
 }
 REST_AUTH_SERIALIZERS = {
     # "USER_LOGIN_SERIALIZER": "auth.api.serializers." "LoginSuccessSerializer",
