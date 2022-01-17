@@ -42,26 +42,49 @@ class NewsFeedHomeAPIViewTestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_past_and_upcoming_distinguished(self):
-        pass
+        now = django_timezone.now()
+        tomorrow = now + timedelta(days=1)
+        yesterday = now - timedelta(days=1)
 
-    def test_distance_affects_visibiity(self):
-
-        # now = django_timezone.now()
-        # tomorrow = now + timedelta(days=1)
-
-        # attrs = {
-        #     "user": self.friend,
-        #     "start_at": tomorrow,
-        #     "end_at": tomorrow + timedelta(hours=2),
-        # }
-        # close_event = Event.objects.create(**attrs, spot=self.close_spot)
-        # far_event = Event.objects.create(**attrs, spot=self.faraway_spot)
+        attrs = {"user": self.friend, "spot": self.close_spot}
+        future_event = Event.objects.create(
+            **attrs, start_at=tomorrow, end_at=tomorrow + timedelta(hours=2)
+        )
+        past_event = Event.objects.create(
+            **attrs, start_at=yesterday, end_at=yesterday + timedelta(hours=2)
+        )
 
         response = self.client.get(
             "{}?lat={}&lon={}".format(self.url, self.lat, self.lon)
         )
-        print(response.status_code)
-        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        future_event_ids = [x["id"] for x in response.data["events"]["upcoming"]]
+        self.assertTrue(future_event.pk in future_event_ids)
+        self.assertFalse(past_event.pk in future_event_ids)
+
+        past_event_ids = [x["id"] for x in response.data["events"]["past"]]
+        self.assertFalse(future_event.pk in past_event_ids)
+        self.assertTrue(past_event.pk in past_event_ids)
+
+    def test_distance_affects_visibiity(self):
+        now = django_timezone.now()
+        tomorrow = now + timedelta(days=1)
+
+        attrs = {
+            "user": self.friend,
+            "start_at": tomorrow,
+            "end_at": tomorrow + timedelta(hours=2),
+        }
+        close_event = Event.objects.create(**attrs, spot=self.close_spot)
+        far_event = Event.objects.create(**attrs, spot=self.faraway_spot)
+
+        response = self.client.get(
+            "{}?lat={}&lon={}".format(self.url, self.lat, self.lon)
+        )
+        self.assertEqual(response.status_code, 200)
+        event_ids = [x["id"] for x in response.data["events"]["upcoming"]]
+        self.assertTrue(close_event.pk in event_ids)
+        self.assertFalse(far_event.pk in event_ids)
 
 
 class EventCreateEditDeleteTestCase(APITestCase):

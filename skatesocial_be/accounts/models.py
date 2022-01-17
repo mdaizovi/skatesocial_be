@@ -64,11 +64,12 @@ class UserLocation(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        # if self.updated_at:
-        #     if all([not self.updated_at.tzinfo, self.lon, self.lat]):
-        #         self.updated_at = replace_timezone(
-        #             time_obj=self.updated_at, lon=self.lon, lat=self.lat)
+        if self.updated_at:
+            if all([not self.updated_at.tzinfo, self.lon, self.lat]):
+                self.updated_at = replace_timezone(
+                    time_obj=self.updated_at, lon=self.lon, lat=self.lat
+                )
 
-        # self._get_location_from_lon_lat()
+        self._get_location_from_lon_lat()
 
         super().save(*args, **kwargs)

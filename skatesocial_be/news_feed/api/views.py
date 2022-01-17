@@ -64,11 +64,10 @@ class NewsFeedHomeAPIView(GenericAPIView):
         now = datetime.datetime.now(
             pytz.timezone(get_timezone_string(lon=lon, lat=lat))
         )
-        # arbitrary: Fenny to Stansi is 25 kilometers, Fenny to Potsdam HBF is 35
+        # max_distance_k is an arbitrary choice I made.
+        # Fenny to Stansi is 25 kilometers, Fenny to Potsdam HBF is 35
         max_distance_k = self.request.query_params.get("max_distance_k", 30)
         pnt = GEOSGeometry("POINT({} {})".format(lon, lat), srid=4326)
-        print("\n\npnt")
-        print(pnt)
 
         base_query = Event.objects.visible_to_user(user=self.request.user).filter(
             spot__location__distance_lte=(pnt, D(km=int(max_distance_k)))
@@ -77,13 +76,9 @@ class NewsFeedHomeAPIView(GenericAPIView):
         upcoming_events = base_query.filter(
             Q(start_at__gte=now) | Q(end_at__gte=now)
         ).order_by("start_at")[:max_events]
-        print("\n\nupcoming_events")
-        print(upcoming_events)
         past_events = base_query.filter(start_at__lt=now).order_by("-start_at")[
             :max_events
         ]
-        print("past_events")
-        print(past_events)
 
         data["events"]["upcoming"] = EventViewBasicSerializer(
             upcoming_events, many=True

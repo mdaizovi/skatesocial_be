@@ -84,10 +84,6 @@ class Spot(models.Model):
         # Don't save here, save after.
         if not self.location and (self.lon and self.lat):
             self.location = Point((self.lon, self.lat), srid=4326)
-            # self.location.transform(ct=4326) # i don't think that makes a difference
-            # self.location = fromstr(
-            #     ("POINT(%s %s)" % (str(self.lon), str(self.lat))), srid=4326
-            # )
 
     def save(self, *args, **kwargs):
         self._get_location_from_lon_lat()
