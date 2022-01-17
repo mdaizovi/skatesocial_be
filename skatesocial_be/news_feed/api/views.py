@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import fromstr, Point, GEOSGeometry
 from django.contrib.gis.measure import D
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 
 from rest_framework import status
@@ -31,6 +31,7 @@ from .serializers import (
     EventViewDetailSerializer,
     EventResponseCreateUpdateSerializer,
 )
+from accounts.tasks import update_user_location
 
 User = get_user_model()
 
@@ -40,7 +41,7 @@ class NewsFeedHomeAPIView(GenericAPIView):
     serializer_class = None
     allowed_methods = ("GET",)
     """
-    Filter needs to include MY posts. i guess otherwise just toss them in.
+    Filter needs to include MY posts. I guess otherwise just toss them in.
     """
 
     def get(self, request, format=None):
@@ -57,27 +58,37 @@ class NewsFeedHomeAPIView(GenericAPIView):
                 {"status": "Required field not found: lat, lon"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        # TODO: celery
+        update_user_location(user_id=self.request.user.pk, lat=lat, lon=lon)
+
         now = datetime.datetime.now(
             pytz.timezone(get_timezone_string(lon=lon, lat=lat))
         )
         # arbitrary: Fenny to Stansi is 25 kilometers, Fenny to Potsdam HBF is 35
         max_distance_k = self.request.query_params.get("max_distance_k", 30)
-        # pnt = GEOSGeometry('POINT({} {})'.format(lon, lat), srid=4326)
-        pnt = fromstr("POINT({} {})".format(lon, lat), srid=4326)
+        pnt = GEOSGeometry("POINT({} {})".format(lon, lat), srid=4326)
+        print("\n\npnt")
+        print(pnt)
 
         base_query = Event.objects.visible_to_user(user=self.request.user).filter(
-            spot__location__distance_lte=(pnt, D(km=max_distance_k))
+            spot__location__distance_lte=(pnt, D(km=int(max_distance_k)))
         )
 
         upcoming_events = base_query.filter(
-            Q(start_at__gte=now) | Q(end_at__gte=now).order_by("start_at")[:max_events]
-        )
+            Q(start_at__gte=now) | Q(end_at__gte=now)
+        ).order_by("start_at")[:max_events]
+        print("\n\nupcoming_events")
+        print(upcoming_events)
         past_events = base_query.filter(start_at__lt=now).order_by("-start_at")[
             :max_events
         ]
+        print("past_events")
+        print(past_events)
 
-        data["events"]["upcoming"] = EventViewBasicSerializer(upcoming_events).data
-        data["events"]["past"] = EventViewBasicSerializer(past_events).data
+        data["events"]["upcoming"] = EventViewBasicSerializer(
+            upcoming_events, many=True
+        ).data
+        data["events"]["past"] = EventViewBasicSerializer(past_events, many=True).data
 
         return Response(data=data, status=status.HTTP_200_OK)
 

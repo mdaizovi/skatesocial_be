@@ -1,9 +1,10 @@
+from datetime import timedelta
 import json
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-
 from django.test.client import encode_multipart
+from django.utils import timezone as django_timezone
 
 from rest_framework.test import APIRequestFactory, APITestCase
 from crew_network.models import Friendship
@@ -11,10 +12,55 @@ from ..models import Event, EventResponse
 from ..model_choices import EventResponseChoices
 from skate_spots.models import Spot
 
+from utils.helper_functions import replace_timezone, get_timezone_string
+
 User = get_user_model()
 
 # print(response.status_code)
 # print(response.data)
+
+
+class NewsFeedHomeAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="Me", email="me@email.com")
+        self.nearby_friend = User.objects.create_user(username="neaby friend")
+        self.friend = User.objects.create_user(username="friend")
+        for f in [self.friend]:
+            friendship = Friendship.objects.create()
+            friendship.users.set([self.user, f])
+
+        self.lat = "52.5239766"
+        self.lon = "13.4794608"
+        self.close_spot = Spot.objects.create(
+            name="G3", lat="52.4969355", lon="13.3695167"
+        )
+        self.faraway_spot = Spot.objects.create(
+            name="Bowl Bar", lat="50.070533", lon="14.4513379"
+        )
+        self.url = "/api/v1/news/feed/home"
+        self.client.force_authenticate(user=self.user)
+
+    def test_past_and_upcoming_distinguished(self):
+        pass
+
+    def test_distance_affects_visibiity(self):
+
+        # now = django_timezone.now()
+        # tomorrow = now + timedelta(days=1)
+
+        # attrs = {
+        #     "user": self.friend,
+        #     "start_at": tomorrow,
+        #     "end_at": tomorrow + timedelta(hours=2),
+        # }
+        # close_event = Event.objects.create(**attrs, spot=self.close_spot)
+        # far_event = Event.objects.create(**attrs, spot=self.faraway_spot)
+
+        response = self.client.get(
+            "{}?lat={}&lon={}".format(self.url, self.lat, self.lon)
+        )
+        print(response.status_code)
+        print(response.data)
 
 
 class EventCreateEditDeleteTestCase(APITestCase):

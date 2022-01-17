@@ -1,6 +1,5 @@
 from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
-
 from django_countries.fields import CountryField
 from django.contrib.gis.geos import fromstr, Point
 
@@ -47,9 +46,14 @@ class Spot(models.Model):
     address = models.CharField(max_length=100, null=True, blank=True)
     city = models.ForeignKey(City, null=True, blank=True, on_delete=models.SET_NULL)
 
-    lat = models.DecimalField(max_digits=19, decimal_places=10, null=True, blank=True)
-    lon = models.DecimalField(max_digits=19, decimal_places=10, null=True, blank=True)
-    location = models.PointField(null=True, blank=True)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    lon = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    """
+    if distance measurements in meters are required (as opposed to simply ordering them
+    from nearest to furthest), then the geography PointField will be used.
+    NOTE: Geography support is *limited to PostGIS* and will force the SRID to be 4326.
+    """
+    location = models.PointField(null=True, blank=True, srid=4326)
 
     category = models.CharField(
         max_length=1,
@@ -76,7 +80,7 @@ class Spot(models.Model):
         else:
             return "<{}>: {}".format(self.__class__.__name__, self.name)
 
-    def location_from_lon_lat(self):
+    def _get_location_from_lon_lat(self):
         # Don't save here, save after.
         if not self.location and (self.lon and self.lat):
             self.location = fromstr(
@@ -84,7 +88,7 @@ class Spot(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        self.location_from_lon_lat()
+        # self._get_location_from_lon_lat()
         super(Spot, self).save()
 
 

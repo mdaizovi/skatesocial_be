@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from crew_network.models import Crew
-from utils.helper_functions import get_timezone_string
+from utils.helper_functions import replace_timezone
 
 from .model_choices import EventResponseChoices, EventWheelChoices
 from .model_managers import EventManager
@@ -57,10 +57,19 @@ class Event(models.Model):
         )
 
     def save(self, *args, **kwargs):
+
         if all([self.spot, self.start_at]):
             if all([not self.start_at.tzinfo, self.spot.lon, self.spot.lat]):
-                tz = get_timezone_string(lon=self.spot.lon, lat=self.spot.lat)
-                self.start_at = self.start_at.replace(tzinfo=tz)
+                self.start_at = replace_timezone(
+                    time_obj=self.start_at, lon=self.spot.lon, lat=self.spot.lat
+                )
+
+        if all([self.spot, self.end_at]):
+            if all([not self.end_at.tzinfo, self.spot.lon, self.spot.lat]):
+                self.end_at = replace_timezone(
+                    time_obj=self.end_at, lon=self.spot.lon, lat=self.spot.lat
+                )
+
         super().save(*args, **kwargs)
 
     def clean(self):

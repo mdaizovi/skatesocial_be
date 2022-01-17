@@ -5,9 +5,11 @@ from .views import (
     EventUpdateAPIView,
     EventResponseCreateAPIView,
     EventResponseUpdateAPIView,
+    NewsFeedHomeAPIView,
 )
 
 urlpatterns = [
+    path("feed/home", NewsFeedHomeAPIView.as_view(), name="newsfeed-home"),
     path("events", EventCreateAPIView.as_view(), name="event-create"),
     path(
         "events/<int:pk>", EventUpdateAPIView.as_view(), name="event-view-update-delete"

@@ -39,7 +39,7 @@ SITE_URL = SITE_ADDRESS
 # SERVER_HOSTNAME = env('SERVER_HOSTNAME')
 ALLOWED_HOSTS = ["127.0.0.1:8000", "127.0.0.1", "localhost", SITE_ADDRESS]
 
-
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Application definition
 
 INSTALLED_APPS = [
