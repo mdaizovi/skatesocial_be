@@ -48,8 +48,7 @@ class UserLocation(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     lon = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
-    # location = models.PointField(
-    #     null=True, blank=True, srid=4326)
+    location = models.PointField(null=True, blank=True, geography=True, srid=4326)
 
     class Meta:
         ordering = (

@@ -53,7 +53,7 @@ class Spot(models.Model):
     from nearest to furthest), then the geography PointField will be used.
     NOTE: Geography support is *limited to PostGIS* and will force the SRID to be 4326.
     """
-    location = models.PointField(null=True, blank=True, srid=4326)
+    location = models.PointField(null=True, blank=True, geography=True, srid=4326)
 
     category = models.CharField(
         max_length=1,
@@ -83,12 +83,14 @@ class Spot(models.Model):
     def _get_location_from_lon_lat(self):
         # Don't save here, save after.
         if not self.location and (self.lon and self.lat):
-            self.location = fromstr(
-                ("POINT(%s %s)" % (str(self.lon), str(self.lat))), srid=4326
-            )
+            self.location = Point((self.lon, self.lat), srid=4326)
+            # self.location.transform(ct=4326) # i don't think that makes a difference
+            # self.location = fromstr(
+            #     ("POINT(%s %s)" % (str(self.lon), str(self.lat))), srid=4326
+            # )
 
     def save(self, *args, **kwargs):
-        # self._get_location_from_lon_lat()
+        self._get_location_from_lon_lat()
         super(Spot, self).save()
 
 

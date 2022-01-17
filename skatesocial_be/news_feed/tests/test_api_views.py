@@ -1,5 +1,6 @@
 from datetime import timedelta
 import json
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -29,13 +30,13 @@ class NewsFeedHomeAPIViewTestCase(APITestCase):
             friendship = Friendship.objects.create()
             friendship.users.set([self.user, f])
 
-        self.lat = "52.5239766"
-        self.lon = "13.4794608"
+        self.lat = Decimal(52.5239766)
+        self.lon = Decimal(13.4794608)
         self.close_spot = Spot.objects.create(
-            name="G3", lat="52.4969355", lon="13.3695167"
+            name="G3", lat=Decimal(52.4969355), lon=Decimal(13.3695167)
         )
         self.faraway_spot = Spot.objects.create(
-            name="Bowl Bar", lat="50.070533", lon="14.4513379"
+            name="Bowl Bar", lat=Decimal(50.070533), lon=Decimal(14.4513379)
         )
         self.url = "/api/v1/news/feed/home"
         self.client.force_authenticate(user=self.user)

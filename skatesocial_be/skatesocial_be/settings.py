@@ -115,16 +115,13 @@ WSGI_APPLICATION = "skatesocial_be.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.contrib.gis.db.backends.mysql",
-        "NAME": env("MYSQL_NAME"),
-        "USER": env("MYSQL_USER"),
-        "PASSWORD": env("MYSQL_PASSWORD"),
-        # "PORT": int(env("MYSQL_PORT", 3306)),
-        "HOST": env("MYSQL_HOST"),
-        "OPTIONS": {
-            "sql_mode": "TRADITIONAL",
-            "charset": "utf8",
-        },
+        # "ENGINE": "django.contrib.gis.db.backends.mysql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": env("POSTGRES_NAME"),
+        "USER": env("POSTGRES_USER"),
+        "PASSWORD": env("POSTGRES_PASSWORD"),
+        "PORT": env("POSTGRES_PORT"),
+        "HOST": env("POSTGRES_HOST"),
     }
 }
 

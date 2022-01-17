@@ -12,3 +12,9 @@ Problems with mysql, it stopped responding. Will [this](https://coderwall.com/p/
 
 - needed GDAL
   - `brew install gdal`
+
+Problems with content types etc so this was the command that finally worked:
+
+`python manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission -e admin.logentry --indent 4 > db.json`
+
+Remember you also had to start on an empty db, migrate, and then `python manage.py loaddata db.json`
