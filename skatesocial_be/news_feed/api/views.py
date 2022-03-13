@@ -106,8 +106,8 @@ class EventListOrCreateAPIView(CreateAPIView, ListAPIView):
         elif self.request.method == "POST":
             return EventUpdateSerializer
 
-        def perform_create(self, serializer):
-            serializer.save(user=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def get(self, request, format=None):
         data = {"events": {"upcoming": [], "past": []}}

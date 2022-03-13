@@ -116,7 +116,6 @@ class EventCreateEditDeleteTestCase(APITestCase):
         response = self.client.post(
             self.event_url, {"spot": self.spot.pk}, format="json"
         )
-
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.user.event_set.count(), 1)
 

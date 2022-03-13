@@ -67,9 +67,9 @@ class EventUpdateSerializer(serializers.ModelSerializer):
     For setting Visibility, only has id for setting visibility (not all user/spot info)
     """
 
-    created_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
-    start_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
-    end_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M")
+    created_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M", required=False)
+    start_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M", required=False)
+    end_at = serializers.DateTimeField(format="%d-%m-%Y %H:%M", required=False)
 
     spot = serializers.PrimaryKeyRelatedField(queryset=Spot.objects.all())
     visible_to_friends = serializers.PrimaryKeyRelatedField(
