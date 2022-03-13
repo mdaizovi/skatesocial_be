@@ -1,16 +1,18 @@
 from django.urls import include, path, re_path
 
 from .views import (
-    EventCreateAPIView,
+    EventListOrCreateAPIView,
     EventUpdateAPIView,
     EventResponseCreateAPIView,
     EventResponseUpdateAPIView,
     NewsFeedHomeAPIView,
 )
 
+# https://restfulapi.net/resource-naming/
+
 urlpatterns = [
     path("feed/home", NewsFeedHomeAPIView.as_view(), name="newsfeed-home"),
-    path("events", EventCreateAPIView.as_view(), name="event-create"),
+    path("events", EventListOrCreateAPIView.as_view(), name="event-list-or-create"),
     path(
         "events/<int:pk>", EventUpdateAPIView.as_view(), name="event-view-update-delete"
     ),

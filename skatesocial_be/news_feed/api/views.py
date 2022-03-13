@@ -88,15 +88,69 @@ class NewsFeedHomeAPIView(GenericAPIView):
         return Response(data=data, status=status.HTTP_200_OK)
 
 
-class EventCreateAPIView(CreateAPIView):
+class EventListOrCreateAPIView(CreateAPIView, ListAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = EventUpdateSerializer
 
     def get_queryset(self):
-        return Event.objects.filter(user=self.request.user)
+        if self.request.method == "GET":
+            return Event.objects.visible_to_user(user=self.request.user)
+        else:  # prob unnecessary, Create doesn't query first
+            return Event.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            if self.request.user == self.obj.user:
+                return EventViewDetailSerializer
+            else:
+                return EventViewBasicSerializer
+        elif self.request.method == "POST":
+            return EventUpdateSerializer
+
+        def perform_create(self, serializer):
+            serializer.save(user=self.request.user)
+
+    def get(self, request, format=None):
+        data = {"events": {"upcoming": [], "past": []}}
+        # TODO needs to accept filters in GET
+        # Filter needs to include MY posts. Otherwise just toss them in.
+        max_events = 25
+
+        # All these should come from client
+        lat = self.request.query_params.get("lat", None)
+        lon = self.request.query_params.get("lon", None)
+        if not (lat and lon):
+            return Response(
+                {"status": "Required field not found: lat, lon"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        # TODO: celery
+        update_user_location(user_id=self.request.user.pk, lat=lat, lon=lon)
+
+        now = datetime.datetime.now(
+            pytz.timezone(get_timezone_string(lon=lon, lat=lat))
+        )
+        # max_distance_k is an arbitrary choice I made.
+        # Fenny to Stansi is 25 kilometers, Fenny to Potsdam HBF is 35
+        max_distance_k = self.request.query_params.get("max_distance_k", 30)
+        pnt = GEOSGeometry("POINT({} {})".format(lon, lat), srid=4326)
+
+        base_query = Event.objects.visible_to_user(user=self.request.user).filter(
+            spot__location__distance_lte=(pnt, D(km=int(max_distance_k)))
+        )
+
+        upcoming_events = base_query.filter(
+            Q(start_at__gte=now) | Q(end_at__gte=now)
+        ).order_by("start_at")[:max_events]
+        past_events = base_query.filter(start_at__lt=now).order_by("-start_at")[
+            :max_events
+        ]
+
+        data["events"]["upcoming"] = EventViewBasicSerializer(
+            upcoming_events, many=True
+        ).data
+        data["events"]["past"] = EventViewBasicSerializer(past_events, many=True).data
+
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 class EventUpdateAPIView(RetrieveUpdateDestroyAPIView):
